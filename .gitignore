@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.e2e/
+.e2e-data/
+.e2e-auth/
+.browsers/
+.validation/
+.netlify/
+allure-results/
+allure-report/
+test-history/
+*.tsbuildinfo

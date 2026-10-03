@@ -1,0 +1,10 @@
+[build]
+  publish = "allure-report"
+
+# GitHub Actions generates the completed report, then deploys with --no-build.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Cache-Control = "public, max-age=0, must-revalidate"

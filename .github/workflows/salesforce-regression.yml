@@ -1,0 +1,118 @@
+name: Salesforce UI regression and Netlify Allure
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * 1-5'
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: salesforce-ui-sandbox
+  cancel-in-progress: false
+
+env:
+  CI: '1'
+  E2E_TELEMETRY_DISABLED: '1'
+
+jobs:
+  checks:
+    name: Source and reporting checks (no Salesforce credentials)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - run: npm ci --no-audit --no-fund
+      - run: npm run install:browsers -- --with-deps
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run pom:check
+      - run: npm run design:check
+      - run: npm run test:auth-harness
+      - run: npm run test:evidence-harness
+
+  regression:
+    name: Live UI regression and Allure publication
+    needs: checks
+    # Pull requests run isolated source/report checks. Only default-branch
+    # code receives org credentials and updates the production report.
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SF_BASE_URL: ${{ vars.SF_BASE_URL || 'https://orgfarm-80a620fbaf-dev-ed.develop.my.salesforce.com' }}
+      SF_SALES_USERNAME: ${{ secrets.SF_SALES_USERNAME }}
+      SF_SERVICE_USERNAME: ${{ secrets.SF_SERVICE_USERNAME }}
+      SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
+      SF_JWT_PRIVATE_KEY: ${{ secrets.SF_JWT_PRIVATE_KEY }}
+      SF_JWT_AUDIENCE: ${{ vars.SF_JWT_AUDIENCE || 'https://login.salesforce.com' }}
+      SF_TIME_ZONE: ${{ vars.SF_TIME_ZONE || 'Europe/Budapest' }}
+      SF_OPPORTUNITY_RECORD_TYPE: ${{ vars.SF_OPPORTUNITY_RECORD_TYPE }}
+      SF_STAGE_INITIAL: ${{ vars.SF_STAGE_INITIAL || 'Prospecting' }}
+      SF_STAGE_QUALIFIED: ${{ vars.SF_STAGE_QUALIFIED || 'Qualification' }}
+      SF_STAGE_PROPOSAL: ${{ vars.SF_STAGE_PROPOSAL || 'Proposal/Price Quote' }}
+      SF_STAGE_NEGOTIATION: ${{ vars.SF_STAGE_NEGOTIATION || 'Negotiation/Review' }}
+      SF_STAGE_WON: ${{ vars.SF_STAGE_WON || 'Closed Won' }}
+      SF_STAGE_LOST: ${{ vars.SF_STAGE_LOST || 'Closed Lost' }}
+      SF_WON_PROBABILITY: ${{ vars.SF_WON_PROBABILITY || '100' }}
+      SF_LOST_PROBABILITY: ${{ vars.SF_LOST_PROBABILITY || '0' }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - run: npm ci --no-audit --no-fund
+      - run: npm run install:browsers -- --with-deps
+      - run: npm run doctor
+      - name: Restore Allure history
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: test-history/history.jsonl
+          key: allure-history-${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: allure-history-${{ github.repository_id }}-
+      - name: Run Salesforce UI regression
+        id: regression
+        run: npm run test:regression
+      - name: Build current Allure report (also after failed tests)
+        id: allure
+        if: ${{ !cancelled() && steps.regression.outcome != 'skipped' }}
+        run: npm run allure:generate
+      - name: Preserve Allure history
+        if: ${{ !cancelled() && steps.allure.outcome == 'success' }}
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: test-history/history.jsonl
+          key: allure-history-${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Publish Allure HTML to Netlify
+        if: ${{ !cancelled() && steps.allure.outcome == 'success' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: npm run allure:deploy
+      - name: Upload reports and precise recovery journals
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: salesforce-regression-${{ github.run_id }}-${{ github.run_attempt }}
+          include-hidden-files: true
+          path: |
+            .e2e/report.json
+            .e2e/junit.xml
+            .e2e/summary.md
+            .e2e/artifacts/**
+            .e2e/allure-results/**
+            .e2e-data/*.json
+            allure-report/**
+          if-no-files-found: warn
+          retention-days: 14

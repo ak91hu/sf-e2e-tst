@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { resolve, relative, isAbsolute, sep } from 'node:path';
+
+const directory = resolve(process.argv[2] || '.e2e');
+const report = JSON.parse(readFileSync(resolve(directory, 'report.json'), 'utf8'));
+const manifest = JSON.parse(readFileSync(resolve(directory, 'allure-results/current.json'), 'utf8'));
+assert.equal(manifest.runId, report.run.id, 'Allure data must belong to the current completed run.');
+const results = resolve(directory, manifest.resultsDirectory);
+const childPath = relative(resolve(directory, 'allure-results'), results);
+assert.ok(!isAbsolute(childPath) && childPath !== '..' && !childPath.startsWith(`..${sep}`));
+assert.equal(manifest.selectedTests, report.run.results.filter(result => result.selected).length);
+assert.equal(readdirSync(results).filter(name => name.endsWith('-result.json')).length, manifest.resultFiles);
+assert.ok(manifest.resultFiles > 0, 'An empty or stale report cannot be published.');
+const output = resolve(process.argv[3] || 'allure-report');
+mkdirSync(resolve('test-history'), { recursive: true });
+const history = directory === resolve('.e2e') ? resolve('test-history/history.jsonl') : resolve(directory, 'allure-history.jsonl');
+const child = spawnSync(process.execPath, ['node_modules/allure/cli.js', 'generate', results, '--config', 'allurerc.mjs', '--output', output], { stdio: 'inherit', env: { ...process.env, E2E_ALLURE_HISTORY_PATH: history } });
+if (child.error || child.status !== 0) process.exit(child.status || 2);
+writeFileSync(resolve(output, 'run-manifest.json'), JSON.stringify({ runId: manifest.runId, selectedTests: manifest.selectedTests, sourceStatus: manifest.sourceStatus, sourceExitCode: manifest.sourceExitCode, generatedAt: new Date().toISOString() }, null, 2));
+console.log(`Allure HTML: ${output}`);
