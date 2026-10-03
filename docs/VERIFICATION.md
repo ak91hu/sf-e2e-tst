@@ -41,6 +41,12 @@ The version audit on 2026-10-03 reports **19/19 current stable direct components
 
 The three AI cases are included in Run tests/all-55 and remain separately selectable locally. Earlier model quota was exhausted; access is now working again. Their live execution is recorded below and never inferred from typechecking.
 
+## First complete all-55 GitHub execution
+
+[Run tests 37113120320](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37113120320) selected exactly **55 results**: **54 passed, 1 failed**, zero retries. All 52 standard results and SF-AI-001/003 passed. SF-AI-002 failed because agent.act judged the outcome while Salesforce Save was pending, with disabled Save/Cancel controls. Failure URL, detailed log and PNG are verified. The PNG shows the successful Contract saved toast: the model judged an earlier pending observation before Save completed. All 51 owned-record journals are fully deleted. Every attempt cleanup completed; the failed job remained red while Allure publication succeeded.
+
+The AI boundary is revised: agents edit fields and leave the form open; the page object clicks Save, waits for the dialog to close and then verifies fresh persisted Details. The targeted corrected AI run passed **4/4**, `.validation/review-ai-save/report.json`, run `01a10141-1937-737e-9127-df58e08b5dc9`, **3m45s**, with 11 real model calls and complete cleanup. A subsequent all-55 CI run validates the correction across the complete selection. The 54 passed results are not presented as a full-suite pass.
+
 ## Final review and live AI checks
 
 [CODE_REVIEW.md](CODE_REVIEW.md) records reviewed boundaries and resolved findings. Ordinary text uses direct fill; numeric fields explicitly receive focus; rename cleanup retains exact original/proposed names on the same owned ID. Allure uses plain English action names and preserves original technical parameters and failure logs. TypeScript rejects unused imports/parameters.

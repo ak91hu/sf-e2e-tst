@@ -165,15 +165,15 @@ add('SF-E2E-001', 'Complete Sales → Service handoff', 'integration', `${draftD
   ['After successful Service checks, open new Sales JWT session, verify profile and open fresh Opportunity Details; on failure, defer Sales restoration until evidence capture in fixture teardown.', 'E2E Sales Manager active; owned Opportunity Closed Won with 100%; cleanup runs as Sales.'],
 ], `${sales} → ${service} → ${sales}`, 'opportunity');
 add('SF-AI-001', 'AI Opportunity editing', 'agent/sales', `${draftData} New unique name; Amount = 543.21.`, [
-  ['Open Opportunity Edit; agent.act sets name and amount and saves.', 'Dialog closes; agent operates through UI only.'],
+  ['Ask AI to enter the new Opportunity name and amount without saving. Save through the page object and wait for the dialog to close.', 'Dialog closes; agent operates through UI only.'],
   ['Run deterministic fresh Details assertions.', 'New name and 543.21; all other fields, Account link and Sales ownership correct.'],
 ], sales, 'opportunity');
 add('SF-AI-002', 'AI Contract editing and assertion', 'agent/sales', `${draftData} 24 months; unique Terms.`, [
-  ['Open Contract Edit; agent.act sets term = 24 and unique Special Terms and saves.', 'Dialog closes.'],
+  ['Ask AI to enter 24 months and the new Contract terms without saving. Save through the page object and wait for the dialog to close.', 'Dialog closes.'],
   ['Run deterministic fresh Details assertions and agent.assert.', '24 months, exact Terms and Draft; AI also confirms visible Draft and 24 months.'],
 ], sales, 'contract');
 add('SF-AI-003', 'AI Quote acceptance and extraction', 'agent/sales', draftData, [
-  ['Open Quote Edit; agent.act selects Accepted and saves.', 'Dialog closes; deterministic fresh Details show Accepted.'],
+  ['Ask AI to select Accepted without saving. Save through the page object and wait for the dialog to close.', 'Dialog closes; deterministic fresh Details show Accepted.'],
   ['agent.extract reads visible Name, Status and Opportunity Name using a Zod schema.', 'Structured object contains exactly owned Quote name, Accepted and owned Opportunity name.'],
 ], sales, 'quote');
 for (const [id, persona, session] of [['SF-AUTH', sales, 'salesforce'], ['SF-AUTH-SERVICE', service, 'service']]) cases.push({

@@ -224,7 +224,7 @@ The command accepts exact workspace attempt journal paths. Never run recovery co
 
 ## AI UI cases
 
-Set `E2E_ENABLE_AI=1` for AI preflight checks. `npm run test:all` includes all AI cases; `npm run test:ai` selects them alone. For ChatGPT access, use `npx e2e login openai`; the Gateway provider needs `AI_GATEWAY_API_KEY`. Run `npm run test:ai`. The agent uses `act`, `assert` and Zod-backed `extract`; the same POM provides fixture preparation, deterministic persisted UI assertions and cleanup. Model access and quota are separate requirements.
+Set `E2E_ENABLE_AI=1` for AI preflight checks. `npm run test:all` includes all AI cases; `npm run test:ai` selects them alone. For ChatGPT access, use `npx e2e login openai`; the Gateway provider needs `AI_GATEWAY_API_KEY`. Run `npm run test:ai`. The agent uses `act`, `assert` and Zod-backed `extract`; the same POM provides fixture preparation, page-object Save completion, deterministic persisted UI assertions and cleanup. Model access and quota are separate requirements.
 
 ## Local checks
 
