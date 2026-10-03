@@ -23,9 +23,9 @@ Automated regression with [TesterArmy e2e](https://tester.army/e2e), TypeScript 
 
 **E2E Sales Manager** creates and owns Opportunities. Every Opportunity fixture verifies Owner and Created By through UI. **E2E Service Manager** has a separate session for permission checks, Case creation/editing and the read-only Contract handoff. Administrators are excluded from business Opportunity creation.
 
-Allure includes executed steps, expected test designs and **detailed failure logs, automatic PNG screenshots and the exact failure URL**. GitHub Actions runs the suite and publishes the completed report to **[Netlify](https://sf-e2e-tst-allure-ak91hu.netlify.app)**. [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Test design wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
+Allure uses plain English executed steps such as **Enter Opportunity Name**, **Click Save** and **Sign in as Service Manager**, expected test designs and **detailed failure logs, automatic PNG screenshots and the exact failure URL**. GitHub Actions **Run tests** runs all **55 results**, including the three AI UI cases, and publishes the completed report to **[Netlify](https://sf-e2e-tst-allure-ak91hu.netlify.app)**. [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Test design wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-**Latest verified full GitHub run: 38/38 passed**, [run 37103571188](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37103571188), 2026-10-03, one worker, zero retries and no remaining owned records. This verified run precedes the English/latest-component update and the expansion to 52 results. Subsequent runs validate those changes separately. [Verification evidence](docs/VERIFICATION.md) distinguishes completed runs from pending work.
+**Latest completed green standard GitHub run: 52/52 passed**, [run 37107049215](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37107049215), 2026-10-03, with current stable components, English results, one worker and zero retries. All 48 fixture journals show complete UI cleanup and no remaining owned records. A later run found a text-clearing failure, now corrected and verified in a targeted live run. The all-55 CI selection includes the AI cases. [Verification evidence](docs/VERIFICATION.md) records actual results and the latest publication.
 
 ## Documentation
 
@@ -35,13 +35,14 @@ All supporting Markdown documents are organized under `docs/`; this root README 
 | --- | --- |
 | [Test designs](docs/TEST_DESIGN.md) | **55 designs, 475 explicit steps**, with Action / Data / Expected output, role, preconditions, fixture preparation and cleanup. |
 | [Wiki page sources](docs/wiki/Home.md) | One generated page per case, plus the wiki index and sidebar. |
+| [Final code review](docs/CODE_REVIEW.md) | Findings, fixes, plain English steps and validation. |
 | [POM review](docs/POM_REVIEW.md) | Page Object Model structure, review findings and fixes. |
 | [Authentication setup](docs/AUTH_SETUP.md) | JWT, personas, permissions and email-code-free runs. |
 | [GitHub and Netlify](docs/GITHUB_NETLIFY.md) | Secrets, Actions, history, report publication and wiki maintenance. |
 | [Version audit](docs/VERSIONS.md) | Latest stable versions, primary sources and TypeScript compatibility. |
 | [Verification](docs/VERIFICATION.md) | Actual execution evidence and limitations. |
 
-Package badges show exact pins. The Actions badge reflects the latest remote workflow. The three optional AI UI cases are implemented, typechecked and designed; their live success is unverified because available model quota was exhausted. Standard regression requires no AI model or model key.
+Package badges show exact pins. The Actions badge reflects the latest remote workflow. The three AI UI cases are optional for local model-free runs and included in **Run tests**. CI uses the authorized ChatGPT login stored as a repository secret. `test:regression` requires no AI model; `test:all` runs all 55 results with model access. Execution evidence states whether the AI cases passed.
 
 ## Quick start
 
@@ -113,7 +114,18 @@ Local `.env` values never overwrite existing process/CI variables. The current c
 | SF-AUTH, SF-AUTH-SERVICE | +2 setups | Role-specific JWT login, visible profile verification and saved browser session. |
 | SF-AI-001–003 | +3 optional | Natural-language Opportunity/Contract/Quote UI edits, agent assertion and structured extraction with deterministic UI assertions. |
 
-The normal full run selects **50 cases + 2 setups = 52 results**. The 55 designs also cover optional AI cases. Filtered runs export only selected cases and dependencies to Allure.
+`test:regression` selects **50 cases + 2 setups = 52 results**. **Run tests** and `test:all` select **53 cases + 2 setups = 55 results**, including all AI cases. The 55 designs also cover optional AI cases. Filtered runs export only selected cases and dependencies to Allure.
+
+### Large end-to-end workflows
+
+Each workflow is one uninterrupted UI test with its own records, fresh persisted readbacks and UI cleanup. The role changes are part of the same test.
+
+| Case | Whole process | Design steps |
+| --- | --- | ---: |
+| [SF-E2E-002](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-002) | Product and Price Book → Account → Opportunity qualification/proposal → Quote with two product units → Presented/Accepted → Start/Stop Sync → Negotiation/Closed Won → 24-month Contract with agreed terms → Activate → Service read-only handoff → Sales final checks and cleanup. | 24 |
+| [SF-E2E-003](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-003) | Account/Opportunity → Closed Lost → reopen and progress → Denied Quote → replacement Quote with revised charges → Presented/Accepted → verify original Quote isolation → Closed Won → revise Contract term/terms → Activate → Service handoff → Sales final checks and cleanup. | 28 |
+
+Run both with `npm run test:monolithic`, or one with `npm run test:e2e -- --grep SF-E2E-002`. Preparation, business actions, cross-role checks and cleanup all use the UI. The larger workflows complement the focused cases, which pinpoint individual validation, cancellation, boundary and relationship regressions.
 
 **Data model:** standard Salesforce Quote. Contract relates to the workflow through the **Account** in this org; Opportunity.ContractId is absent. The integration verifies the same Account and exact Opportunity link.
 
@@ -124,7 +136,8 @@ The normal full run selects **50 cases + 2 setups = 52 results**. The 55 designs
 | Command | Purpose |
 | --- | --- |
 | `npm run test:list` | Collect cases and setup dependencies without opening a browser. |
-| `npm run test:regression` | Complete standard UI regression. |
+| `npm run test:all` | All 55 results in one run/report, including AI cases; used by Run tests. |
+| `npm run test:regression` | All 52 standard results without model access. |
 | `npm run test:opportunity` / `test:contract` / `test:quote` | Object-specific regression. |
 | `npm run test:roles` / `test:integration` | Role permissions / all three complete workflows. |
 | `npm run test:monolithic` | The two large product-sale and lost-sale-recovery workflows. |
@@ -148,7 +161,8 @@ tests/                 Business workflows and expected results
 pages/                 Account, Opportunity, Contract, Quote, Service, Catalog
 pages/components/      Picklist and Quote Line Items wizard
 support/sales-ui.ts    Shared navigation, forms, Details, reads and UI deletion
-support/core-fixtures  Per-case POM and finally cleanup
+support/core-fixtures  Per-case POM and owned-record cleanup
+support/workflow-fixtures  Deferred persona restoration after failure capture
 support/auth-engine    JWT/frontdoor authentication inside the engine
 reporting/allure.ts    Official Allure reporter SDK adapter
 docs/                  Documentation, editable designs and generated wiki pages
@@ -208,9 +222,9 @@ npm run data:recover -- .e2e-data/<exact-attempt-journal>.json
 
 The command accepts exact workspace attempt journal paths. Never run recovery concurrently with regression. Case journals use Service; standard business records use Sales. `.env`, private keys, auth, sessions, browser downloads, generated reports, journals and local Netlify state are ignored by Git.
 
-## Optional AI UI cases
+## AI UI cases
 
-Set `E2E_ENABLE_AI=1` only for the optional AI configuration. For ChatGPT access, use `npx e2e login openai`; the Gateway provider needs `AI_GATEWAY_API_KEY`. Run `npm run test:ai`. The agent uses `act`, `assert` and Zod-backed `extract`; the same POM provides fixture preparation, deterministic persisted UI assertions and cleanup. Model access and quota are separate requirements.
+Set `E2E_ENABLE_AI=1` for AI preflight checks. `npm run test:all` includes all AI cases; `npm run test:ai` selects them alone. For ChatGPT access, use `npx e2e login openai`; the Gateway provider needs `AI_GATEWAY_API_KEY`. Run `npm run test:ai`. The agent uses `act`, `assert` and Zod-backed `extract`; the same POM provides fixture preparation, deterministic persisted UI assertions and cleanup. Model access and quota are separate requirements.
 
 ## Local checks
 

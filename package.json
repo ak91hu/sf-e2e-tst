@@ -45,7 +45,8 @@
     "test:report-ui": "node scripts/report-ui-harness.mjs",
     "allure:generate": "node scripts/allure-report.mjs",
     "allure:open": "allure open allure-report",
-    "allure:deploy": "node scripts/netlify-report.mjs"
+    "allure:deploy": "node scripts/netlify-report.mjs",
+    "test:all": "node scripts/e2e.mjs run --config e2e.all.config.ts"
   },
   "devDependencies": {
     "@ai-sdk/openai": "4.0.83",

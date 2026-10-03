@@ -1,4 +1,4 @@
-name: Salesforce UI regression and Netlify Allure
+name: Run tests
 
 on:
   workflow_dispatch:
@@ -52,6 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
+      E2E_ENABLE_AI: '1'
+      E2E_MODEL_PROVIDER: ${{ vars.E2E_MODEL_PROVIDER || 'chatgpt' }}
+      E2E_MODEL: ${{ vars.E2E_MODEL || 'gpt-6-luna' }}
+      AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
       SF_BASE_URL: ${{ vars.SF_BASE_URL || 'https://orgfarm-80a620fbaf-dev-ed.develop.my.salesforce.com' }}
       SF_SALES_USERNAME: ${{ secrets.SF_SALES_USERNAME }}
       SF_SERVICE_USERNAME: ${{ secrets.SF_SERVICE_USERNAME }}
@@ -77,6 +81,10 @@ jobs:
       - run: npm install --global npm@12.2.0 --no-audit --no-fund
       - run: npm ci --no-audit --no-fund
       - run: npm run install:browsers -- --with-deps
+      - name: Configure model access for the three AI UI cases
+        env:
+          MODEL_AUTH_JSON: ${{ secrets.E2E_OAUTH_CREDENTIALS }}
+        run: node scripts/prepare-model-auth.mjs
       - run: npm run doctor
       - name: Restore Allure history
         uses: actions/cache/restore@v6.1.0
@@ -84,9 +92,9 @@ jobs:
           path: test-history/history.jsonl
           key: allure-history-${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: allure-history-${{ github.repository_id }}-
-      - name: Run Salesforce UI regression
+      - name: Run all 55 UI test results
         id: regression
-        run: npm run test:regression
+        run: npm run test:all
       - name: Build current Allure report (also after failed tests)
         id: allure
         if: ${{ !cancelled() && steps.regression.outcome != 'skipped' }}

@@ -24,9 +24,11 @@ flowchart TD
 | Scope and strictness | Visible Save identifies editing dialogs; confirmation dialogs use the specific action. Exact accessible names and owned record IDs identify targets. |
 | Dynamic picklists | Native ArrowDown/Enter targets the exact combobox. Each iteration reads the actual open list and active option ID; Enter is used only for the target. A list closed by form validation is reopened. Only an unsaved selection is repeated; Save and entire cases are never automatically retried. |
 | Formatted numbers | Numeric inputs are strictly parsed from visible values, accepting USD formatting and grouping: 1 equals $1.00. Empty/invalid text does not become zero. String inputs use exact string equality. A synthetic UI case covers immediate formatting, 0, 0.01, grouping and clearing. |
+| Text and focus | Text replacement uses native fill and exact readback; numeric clearing first focuses the field. A UI host intercepting select-all cannot break ordinary text replacement. |
 | Waiting | Visibility, enablement, URL, tab state, field values, list readiness and UI readbacks drive waits; no fixed sleeps. |
 | Persistence | Save is followed by fresh record navigation and Details reads. Exact Account/Opportunity link IDs verify relationships. DOM evaluation reads only visible fields. |
 | Owned data | A pre-Save journal, exact ID/name and Description marker bind fixtures to the case. Opening foreign or already-deleted records is rejected. |
+| Failed renames | Exact previous names remain in the journal. Cleanup reconciles the visible name only on the same owned ID, accepting an exact E2E name from that record's history. |
 | Role correctness | Opportunity creation rejects administrators; UI Owner/Created By is verified. Integration opens separate JWT sessions and verifies visible profile identity. |
 | Multi-role failure evidence | Workflow persona fixture depends on the owned-data fixture. Successful Service checks explicitly restore Sales; a failed Service check leaves its UI intact until the runner captures evidence. Deferred persona teardown then restores Sales before owned-record cleanup. A synthetic UI failure verifies both the original Contract URL/PNG and the later Sales navigation. |
 | Cleanup | UI deletion in fixture finally; unfinished forms discarded. Closing dialogs must disappear before the next action. |

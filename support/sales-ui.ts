@@ -9,7 +9,7 @@ import { expect } from 'e2e';
 import type { Browser } from '@e2e-dev/web';
 import { z } from 'zod';
 import { environment } from './environment.ts';
-import { futureDate, opportunityData, uniqueName, type OpportunityData } from './data.ts';
+import type { OpportunityData } from './data.ts';
 import { UiRecords, type UiRecord, type UiObject } from './ui-records.ts';
 import { choosePicklist } from '../pages/components/picklist.ts';
 
@@ -47,10 +47,10 @@ export class SalesUi {
   field(label: string) { return this.dialog().getByLabel(new RegExp(`^\\*?\\s*${escape(label)}$`, 'i'), { visible: true }); }
   async fill(label: string, value: string | number) {
     const field = this.field(label);
-    if (await field.inputValue()) {
+    if (typeof value === 'number' && await field.inputValue()) {
       // Salesforce smart-number inputs can retain the previous value when a
       // synthetic fill replaces it. Real selection/deletion updates their model.
-      await field.press('ControlOrMeta+A'); await field.press('Backspace'); await expect(field).toHaveValue('');
+      await field.focus(); await field.press('ControlOrMeta+A'); await field.press('Backspace'); await expect(field).toHaveValue('');
     }
     await field.fill(String(value));
     if (typeof value === 'number') {
@@ -161,6 +161,19 @@ export class SalesUi {
   private async cleanupRecord(record: UiRecord) {
     const close = this.screen.getByRole('button', 'Cancel and close', { visible: true }); if (await close.count() === 1) { await close.tap(); await expect(close).not.toBeVisible(); }
     const errors = this.screen.getByRole('button', 'Close error dialog', { visible: true }); if (await errors.count()) await errors.tap(); const cancel = this.screen.getByRole('dialog', { visible: true }).getByRole('button', 'Cancel', { visible: true }); if (await cancel.count() === 1) await cancel.tap();
-    if (record.id) await this.delete(record as SavedRecord); else await this.assertAbsent(record);
+    if (record.id) {
+      if (record.previousNames?.length) {
+        // The edit may have failed before Save or after Save. Reconcile only
+        // exact journaled names on this exact owned ID, never by prefix search.
+        await this.app.open(`/lightning/r/${record.object}/${record.id}/view`);
+        await expect(this.browser).toHaveURL(new RegExp(`/lightning/r/${record.object}/${record.id}/view(?:\\?.*)?$`));
+        const names = [record.name, ...record.previousNames].map(escape).join('|');
+        const heading = this.screen.getByRole('heading', new RegExp(`^(?:${record.object}\\s+)?(${names})$`), { visible: true });
+        await expect(heading).toBeVisible();
+        const visibleName = (await heading.textContent())!.replace(new RegExp(`^${record.object}\\s+`), '').trim();
+        this.owned.reconcileName(record, visibleName);
+      }
+      await this.delete(record as SavedRecord);
+    } else await this.assertAbsent(record);
   }
 }

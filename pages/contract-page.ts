@@ -1,7 +1,7 @@
 import { expect } from 'e2e';
 import { environment } from '../support/environment.ts';
-import { futureDate, opportunityData, uniqueName, type OpportunityData } from '../support/data.ts';
-import type { SalesUi, SavedRecord, Deal, Fields } from '../support/sales-ui.ts';
+import { futureDate, uniqueName } from '../support/data.ts';
+import type { SalesUi, SavedRecord } from '../support/sales-ui.ts';
 
 export class ContractPage {
   constructor(private readonly ui: SalesUi) {}

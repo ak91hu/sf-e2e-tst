@@ -6,6 +6,7 @@ import { Stage, Status, type StepResult } from 'allure-js-commons';
 import { ReporterRuntime, createDefaultWriter } from 'allure-js-commons/sdk/reporter';
 import { testDesigns } from '../docs/test-design.ts';
 import { redactAuthUrl } from '../support/auth-redaction.ts';
+import { readableStepName } from './step-names.ts';
 
 type Result = Report['run']['results'][number];
 type Attempt = Result['attempts'][number];
@@ -26,10 +27,11 @@ function errorDetails(error?: Failure) {
 
 function steps(attempt: Attempt): StepResult[] {
   return attempt.steps.map(step => ({
-    name: `${step.api}: ${step.label}`,
+    name: readableStepName(step.api, step.label),
     status: allureStatus(step.status, step.error), stage: Stage.FINISHED,
     start: instant(step.startedAt), stop: instant(step.startedAt) + step.durationMs,
-    statusDetails: errorDetails(step.error), attachments: [], parameters: [], steps: [],
+    statusDetails: errorDetails(step.error), attachments: [],
+    parameters: [{ name: 'Technical action', value: step.api }, { name: 'Locator or target', value: step.label }], steps: [],
   }));
 }
 

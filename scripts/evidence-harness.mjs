@@ -17,6 +17,9 @@ const files = readdirSync(directory);
 for (const filename of files.filter(name => name.endsWith('-result.json'))) {
 const result = JSON.parse(readFileSync(resolve(directory, filename), 'utf8'));
 assert.equal(result.status, 'failed');
+assert.ok(result.steps.every(step => !/getBy|^(?:locator|browser|expect)\./.test(step.name)), 'Report step names must be plain English.');
+assert.ok(result.steps.every(step => step.parameters.some(parameter => parameter.name === 'Technical action')
+  && step.parameters.some(parameter => parameter.name === 'Locator or target')), 'Retain technical action details underneath readable names.');
 assert.ok(result.steps.some(step => step.status === 'failed' && step.statusDetails.message.includes('ASSERTION_FAILED')));
 const url = new URL(result.links[0].url);
 if (result.name === 'Allure failure evidence canary') assert.equal(url.pathname + url.search, '/lightning/o/Opportunity/list?evidence=canary');

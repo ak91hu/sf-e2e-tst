@@ -1,6 +1,5 @@
 import { expect } from 'e2e';
 import { test } from '../support/core-fixtures.ts';
-import { uniqueName } from '../support/data.ts';
 
 test('SF-ROLE-001 | Sales Manager creates and owns the Opportunity', { session: 'salesforce', tags: ['regression', 'roles', 'smoke'] }, async ({ sales }) => {
   const deal = await sales.opportunities.create(await sales.accounts.create(), 'SalesPersona');

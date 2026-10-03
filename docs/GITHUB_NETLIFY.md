@@ -2,7 +2,7 @@
 
 [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Netlify Allure](https://sf-e2e-tst-allure-ak91hu.netlify.app) · [Wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-Repository owner and commit author: **ak91hu**. Default branch: `main`. Actions executes UI regression; Netlify serves the generated static report. All six secrets and eleven configuration variables are configured. The completed [run 37103571188](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37103571188) passed 38/38 and deployed its matching report; see [verification](VERIFICATION.md) for update validation.
+Repository owner and commit author: **ak91hu**. Default branch: `main`. Actions executes UI regression; Netlify serves the generated static report. Seven secrets and thirteen configuration variables are configured. **Run tests** executes all 55 results, including the three AI UI cases, in one report. The completed [run 37107049215](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37107049215) passed 52/52 with English/latest-component results and deployed its matching report; see [verification](VERIFICATION.md) for the final-source run.
 
 ## Repository secrets and variables
 
@@ -14,12 +14,13 @@ Configure or rotate values under Settings → Secrets and variables → Actions.
 | `SF_SERVICE_USERNAME` | Preauthorized Service Manager username. |
 | `SF_CLIENT_ID` | External Client App Consumer Key. |
 | `SF_JWT_PRIVATE_KEY` | Complete RSA private PEM with actual line breaks, not a file path. |
+| `E2E_OAUTH_CREDENTIALS` | Authorized e2e ChatGPT login JSON, stored only as a secret. |
 | `NETLIFY_AUTH_TOKEN` | Access token belonging to the report site owner. |
 | `NETLIFY_SITE_ID` | Target report site ID. |
 
-Variables: `SF_BASE_URL`, `SF_JWT_AUDIENCE`, `SF_TIME_ZONE`, `SF_STAGE_INITIAL`, `SF_STAGE_QUALIFIED`, `SF_STAGE_PROPOSAL`, `SF_STAGE_NEGOTIATION`, `SF_STAGE_WON`, `SF_STAGE_LOST`, `SF_WON_PROBABILITY`, `SF_LOST_PROBABILITY`. `SF_OPPORTUNITY_RECORD_TYPE` is optional and currently unset.
+Variables: `SF_BASE_URL`, `SF_JWT_AUDIENCE`, `SF_TIME_ZONE`, `SF_STAGE_INITIAL`, `SF_STAGE_QUALIFIED`, `SF_STAGE_PROPOSAL`, `SF_STAGE_NEGOTIATION`, `SF_STAGE_WON`, `SF_STAGE_LOST`, `SF_WON_PROBABILITY`, `SF_LOST_PROBABILITY`, `E2E_MODEL_PROVIDER`, `E2E_MODEL`. `SF_OPPORTUNITY_RECORD_TYPE` is optional and currently unset.
 
-Administrator credentials, email codes and AI keys are not required. `.env`, private keys, auth, sessions, journals, local browser downloads and generated report/history directories remain excluded from Git.
+Administrator credentials and email codes are not required. ChatGPT model access uses the existing authorized OAuth login. To use AI Gateway instead, set provider/model variables and configure AI_GATEWAY_API_KEY. `.env`, private keys, auth, sessions, journals, local browser downloads and generated report/history directories remain excluded from Git.
 
 ## Netlify site
 
@@ -41,7 +42,7 @@ Deployment uses `--prod --no-build`. Current `.e2e/report.json` and HTML run-man
 | Trigger / step | Behavior |
 | --- | --- |
 | Pull request | Credential-free TypeScript, unit, POM/design/wiki, synthetic auth and failure-evidence checks. |
-| Source push to `main`, manual default-branch dispatch, weekdays 02:00 UTC | Source checks, then one-worker live UI regression with zero retries. Shared concurrency queues runs. |
+| Source push to `main`, manual default-branch dispatch, weekdays 02:00 UTC | **Run tests**: source checks, then all 55 results using `npm run test:all`, one worker and zero retries. Shared concurrency queues runs. |
 | Failed business test | Regression and job remain red; the completed current run still gets Allure generation and Netlify publication. |
 | Missing/current-run mismatch | Report generation/deployment fails; stale or empty reports are rejected. |
 | History | Restore JSONL from Actions cache; save under a unique run key, retaining 20 history entries. |
@@ -51,6 +52,12 @@ Deployment uses `--prod --no-build`. Current `.e2e/report.json` and HTML run-man
 Markdown-only pushes do not launch another live run. Manual dispatch remains available. 02:00 UTC is 03:00 Budapest time in winter and 04:00 in summer. Only default-branch code receives org/deployment secrets.
 
 Node/npm and every GitHub Action are pinned to audited latest stable releases. TypeScript 7 performs type checking; Microsoft's TypeScript 6 compatibility alias supplies the compiler API required by Netlify dependencies. [Version audit](VERSIONS.md) records versions and primary sources.
+
+## Model authentication
+
+The workflow configures the saved ChatGPT login from `E2E_OAUTH_CREDENTIALS` into a private OS credential file on the ephemeral runner. Individual tokens are masked in Actions logs; the file is outside the repository and excluded from caches, artifacts and Netlify. The SDK can refresh credentials during a run. Update this secret after reauthorizing the login if renewal stops working. Missing model access or quota is a failure; the three AI cases are never silently skipped.
+
+`E2E_MODEL_PROVIDER=chatgpt` and `E2E_MODEL=gpt-6-luna` are configured. For Gateway, use `gateway`, a provider-qualified model ID and `AI_GATEWAY_API_KEY`. Pull-request source checks use synthetic pages and do not receive model or Salesforce credentials.
 
 ## Failure debugging
 

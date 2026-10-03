@@ -1,8 +1,8 @@
 import { expect } from 'e2e';
 import { QuoteLineItems } from './components/quote-line-items.ts';
 import { environment } from '../support/environment.ts';
-import { futureDate, opportunityData, uniqueName, type OpportunityData } from '../support/data.ts';
-import type { SalesUi, SavedRecord, Deal, Fields } from '../support/sales-ui.ts';
+import { futureDate, uniqueName } from '../support/data.ts';
+import type { SalesUi, SavedRecord, Deal } from '../support/sales-ui.ts';
 
 export class QuotePage {
   readonly lines: QuoteLineItems;

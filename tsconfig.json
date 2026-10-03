@@ -8,7 +8,20 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
-  "include": ["e2e*.config.ts", "support/**/*.ts", "pages/**/*.ts", "reporting/**/*.ts", "tests/**/*.ts", "unit/**/*.ts", "maintenance/**/*.ts", "validation/**/*.ts"]
+  "include": [
+    "e2e*.config.ts",
+    "support/**/*.ts",
+    "pages/**/*.ts",
+    "reporting/**/*.ts",
+    "tests/**/*.ts",
+    "unit/**/*.ts",
+    "maintenance/**/*.ts",
+    "validation/**/*.ts"
+  ]
 }

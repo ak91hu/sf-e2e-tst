@@ -20,7 +20,7 @@ const text = '# Salesforce UI step-level test designs\n\n' +
 if (process.argv.includes('--check')) {
   assert.equal(readFileSync('docs/TEST_DESIGN.md', 'utf8'), text, 'Regenerate docs/TEST_DESIGN.md.');
   const found = new Set();
-  for (const config of ['e2e.config.ts', 'e2e.agent.config.ts']) {
+  for (const config of ['e2e.config.ts', 'e2e.agent.config.ts', 'e2e.all.config.ts']) {
     const child = spawnSync(process.execPath, ['scripts/e2e.mjs', 'list', '--config', config, '--reporter', 'json'], { encoding: 'utf8' });
     assert.equal(child.status, 0, 'Test collection must succeed for design coverage.');
     for (const pair of JSON.parse(child.stdout).pairs) {
