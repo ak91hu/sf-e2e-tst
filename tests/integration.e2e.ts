@@ -4,7 +4,7 @@ import { environment } from '../support/environment.ts';
 import { resetUiBridge } from '../support/oauth.ts';
 import { switchSalesforcePersona } from '../support/ui-login.ts';
 
-test('SF-E2E-001 | Opportunity → Accepted Quote → Closed Won → Activated Contract → Service átadás', {
+test('SF-E2E-001 | Opportunity → Accepted Quote → Closed Won → Activated Contract → Service handoff', {
   session: 'salesforce', tags: ['regression', 'integration', 'smoke'],
 }, async ({ sales, app, screen, browser, salesforceAuth }) => {
   const account = await sales.accounts.create(); let deal = await sales.opportunities.create(account, 'SalesToService');

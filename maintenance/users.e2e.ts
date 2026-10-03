@@ -2,7 +2,7 @@ import { test } from '@e2e-dev/web';
 import { expect, secrets } from 'e2e';
 import { resetUiBridge } from '../support/oauth.ts';
 
-for (const persona of ['sales', 'service'] as const) test(`SF-USER-SETUP | ${persona} kezdeti fiókbeállítás UI-n`, async ({ app, screen, browser }) => {
+for (const persona of ['sales', 'service'] as const) test(`SF-USER-SETUP | ${persona} initial account setup through UI`, async ({ app, screen, browser }) => {
   resetUiBridge();
   const path = '/__e2e__/oauth-bridge';
   await browser.route(`**${path}`, async route => route.fulfill({ status: 200, headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' }, body: '<form action="/secur/frontdoor.jsp" method="get"><label>Token<input name="otp" type="password"></label><label>Checksum<input name="cshc" type="password"></label><input name="startURL" type="hidden" value="lightning/o/Opportunity/list"><button>Sign in</button></form>' }));

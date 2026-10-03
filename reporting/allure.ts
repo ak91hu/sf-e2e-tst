@@ -82,7 +82,7 @@ export function writeAllureResults(run: FinishedRun, signal?: AbortSignal) {
       const url = failureUrl(attempt?.failure?.url);
       const design = testDesigns.find(design => result.titlePath.at(-1)?.startsWith(`${design.id} |`));
       const description = design
-        ? `Role: ${design.persona}\n\nPreconditions: ${design.preconditions}\n\nData: ${design.data}\n\n${design.steps.map(([action, expected], index) => `${index + 1}. ${action}\n   Expected: ${expected}`).join('\n\n')}`
+        ? `Role: ${design.persona}\n\nPreconditions: ${design.preconditions}\n\nData: ${design.data}\n\n${design.steps.map(([action, data, expected], index) => `${index + 1}. Action: ${action}\n   Data: ${data}\n   Expected: ${expected}`).join('\n\n')}`
         : 'No business test design: infrastructure validation.';
       const uuid = runtime.startTest({
         uuid: hash(`${runId}|${result.id}|${attempt?.index ?? 'not-executed'}`),

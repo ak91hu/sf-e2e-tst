@@ -7,18 +7,18 @@ assert.equal(testDesigns.length, 41, '36 regression cases + 3 optional AI cases 
 assert.equal(new Set(testDesigns.map(item => item.id)).size, testDesigns.length);
 for (const item of testDesigns) {
   assert.ok(existsSync(item.file), `Missing source: ${item.file}`);
-  assert.ok(item.steps.length >= 3 && item.steps.every(step => step.length === 2 && step.every(value => value.trim())));
+  assert.ok(item.steps.length >= 3 && item.steps.every(step => step.length === 3 && step.every(value => value.trim())));
 }
 const cell = value => value.replaceAll('|', '\\|').replaceAll('\n', '<br>');
-const text = '# Salesforce UI – tesztlépés szintű test design\n\n' +
-  '41 design: 36 alapértelmezett regressziós UI-eset, 3 opcionális AI UI-eset és 2 hitelesítési setup. A design tesztterv; a tényleges végrehajtás eredménye a VERIFICATION.md-ben és az Allure-ban található. A közös előkészítés lépéseit minden eset táblázata kibontva tartalmazza.\n\n' +
-  'A Salesforce üzleti adatok előkészítése, ellenőrzése és takarítása kizárólag UI-n történik. A hitelesítési endpointok és az egyszeri adminisztratív provisioning külön konfigurációs feladatok. Minden eset izolált saját adatot használ, az admin nem hoz létre Opportunityt. A lépések sikerét látható mező, vezérlő, rekord-URL vagy listaeredmény bizonyítja. Nincs fix várakozás, API-orákulum vagy automatikus tesztújrapróbálkozás.\n\n' +
-  'A konkrét napi dátumok futáskor képződnek; a `futureDate` UTC-alapú, a Salesforce Closed Won automatikus dátuma a felhasználó időzónáját követi (`SF_TIME_ZONE`, alapértelmezés Europe/Budapest). Stage-értékek és Won/Lost százalékok környezeti változókkal illeszthetők más org-hoz; az alábbi design a konfigurált Developer Edition alapértékeit írja le. Az AI-esetekhez külön modell-hozzáférés és kvóta kell.\n\n' +
-  'Szerkeszthető forrás: [docs/test-design.ts](docs/test-design.ts). Frissítés: `npm run design:generate`; eltérésellenőrzés: `npm run design:check`. Az Allure minden megfeleltetett eset leírásában ugyanezeket az elvárt lépéseket mutatja.\n\n' +
-  '| Azonosító | Cél | Szerepkör |\n| --- | --- | --- |\n' + testDesigns.map(item => `| [${item.id}](#${item.id.toLowerCase()}) | ${cell(item.title)} | ${cell(item.persona)} |`).join('\n') + '\n\n' +
-  testDesigns.map(item => `## ${item.id}\n\n**Cél:** ${item.title}\n\n**Forrás:** [${item.file}](${item.file})\n\n**Szerepkör:** ${item.persona}\n\n**Előfeltételek:** ${item.preconditions}\n\n**Tesztadat:** ${item.data}\n\n| # | UI-művelet / ellenőrzés | Elvárt eredmény |\n| --- | --- | --- |\n${item.steps.map(([action, expected], index) => `| ${index + 1} | ${cell(action)} | ${cell(expected)} |`).join('\n')}\n`).join('\n');
+const text = '# Salesforce UI step-level test designs\n\n' +
+  '41 designs: 36 default regression UI cases, 3 optional AI UI cases and 2 authentication setups. Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands its shared preparation and cleanup steps.\n\n' +
+  'Salesforce business data is created, verified and cleaned up exclusively through UI. Authentication endpoints and one-time administrative provisioning are configuration infrastructure. Each case owns isolated data; administrators never create Opportunities. Visible fields, controls, record URLs and list results prove each step. There are no fixed sleeps, API oracles or automatic test retries.\n\n' +
+  'Dates are generated at runtime. `futureDate` uses UTC; the automatic Salesforce Closed Won date follows the user timezone (`SF_TIME_ZONE`, default Europe/Budapest). Environment variables configure Stage names and Won/Lost percentages for other sales processes; these designs describe the configured Developer Edition defaults. Optional AI cases require model access and quota.\n\n' +
+  'Editable source: [test-design.ts](test-design.ts). Generate with `npm run design:generate`; verify with `npm run design:check`. Allure displays these same expected steps in each matched case description.\n\n' +
+  '| ID | Objective | Role |\n| --- | --- | --- |\n' + testDesigns.map(item => `| [${item.id}](#${item.id.toLowerCase()}) | ${cell(item.title)} | ${cell(item.persona)} |`).join('\n') + '\n\n' +
+  testDesigns.map(item => `## ${item.id}\n\n**Objective:** ${item.title}\n\n**Source:** [${item.file}](../${item.file})\n\n**Role:** ${item.persona}\n\n**Preconditions:** ${item.preconditions}\n\n**Test data:** ${item.data}\n\n| Action | Data | Expected output |\n| --- | --- | --- |\n${item.steps.map(([action, data, expected], index) => `| ${index + 1}. ${cell(action)} | ${cell(data)} | ${cell(expected)} |`).join('\n')}\n`).join('\n');
 if (process.argv.includes('--check')) {
-  assert.equal(readFileSync('TEST_DESIGN.md', 'utf8'), text, 'Regenerate TEST_DESIGN.md.');
+  assert.equal(readFileSync('docs/TEST_DESIGN.md', 'utf8'), text, 'Regenerate docs/TEST_DESIGN.md.');
   const found = new Set();
   for (const config of ['e2e.config.ts', 'e2e.agent.config.ts']) {
     const child = spawnSync(process.execPath, ['scripts/e2e.mjs', 'list', '--config', config, '--reporter', 'json'], { encoding: 'utf8' });
@@ -32,5 +32,5 @@ if (process.argv.includes('--check')) {
   }
   assert.equal(found.size, testDesigns.length, 'Every design must map to an executable case/setup.');
 }
-else writeFileSync('TEST_DESIGN.md', text);
+else writeFileSync('docs/TEST_DESIGN.md', text);
 console.log(`OK | ${testDesigns.length} test designs, ${testDesigns.reduce((sum, item) => sum + item.steps.length, 0)} explicit steps.`);

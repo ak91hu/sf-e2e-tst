@@ -1,243 +1,227 @@
-# Salesforce Opportunity, Contract és Quote UI-regresszió
+# Salesforce Opportunity, Contract and Quote UI regression
 
-[![TesterArmy e2e](https://img.shields.io/badge/TesterArmy_e2e-0.15.1-6547c2)](https://tester.army/e2e)
-[![Web engine](https://img.shields.io/badge/e2e_Web_engine-0.11.1-6547c2)](https://github.com/tester-army/e2e)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-26-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![TesterArmy e2e](https://img.shields.io/badge/TesterArmy_e2e-0.16.0-6547c2)](https://tester.army/e2e)
+[![Web engine](https://img.shields.io/badge/e2e_Web_engine-0.11.2-6547c2)](https://github.com/tester-army/e2e)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Compiler API compatibility](https://img.shields.io/badge/TypeScript_API_compatibility-6.0.2-3178c6)](docs/VERSIONS.md)
+[![Node types](https://img.shields.io/badge/Node_types-26.6.4-339933)](https://www.npmjs.com/package/@types/node)
+[![Node.js](https://img.shields.io/badge/Node.js-26.10.0-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![npm](https://img.shields.io/badge/npm-12.2.0-cb3837?logo=npm&logoColor=white)](https://www.npmjs.com/)
 [![Playwright](https://img.shields.io/badge/Playwright-1.63.0-2ead33?logo=playwright&logoColor=white)](https://playwright.dev/)
 [![Allure](https://img.shields.io/badge/Allure_Report-3.20.0-e84659)](https://allurereport.org/)
 [![Allure SDK](https://img.shields.io/badge/Allure_JS_SDK-3.13.0-e84659)](https://github.com/allure-framework/allure-js)
-[![Zod](https://img.shields.io/badge/Zod-4.6.1-3e67b1?logo=zod&logoColor=white)](https://zod.dev/)
-[![AI SDK](https://img.shields.io/badge/AI_SDK-7.0.107-111111)](https://ai-sdk.dev/)
-[![Netlify](https://img.shields.io/badge/Netlify_CLI-27.10.2-00c7b7?logo=netlify&logoColor=white)](GITHUB_NETLIFY.md)
+[![Zod](https://img.shields.io/badge/Zod-4.6.5-3e67b1?logo=zod&logoColor=white)](https://zod.dev/)
+[![AI SDK](https://img.shields.io/badge/AI_SDK-7.0.127-111111)](https://ai-sdk.dev/)
+[![OpenAI provider](https://img.shields.io/badge/AI_SDK_OpenAI-4.0.83-111111)](https://ai-sdk.dev/providers/ai-sdk-providers/openai)
+[![Netlify](https://img.shields.io/badge/Netlify_CLI-27.10.2-00c7b7?logo=netlify&logoColor=white)](docs/GITHUB_NETLIFY.md)
 [![GitHub Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml/badge.svg)](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml)
 [![Salesforce](https://img.shields.io/badge/Salesforce-Lightning-00a1e0?logo=salesforce&logoColor=white)](https://developer.salesforce.com/)
-[![Salesforce CLI](https://img.shields.io/badge/Salesforce_CLI-2.152.14-00a1e0?logo=salesforce&logoColor=white)](AUTH_SETUP.md)
-[![UI tests](https://img.shields.io/badge/Business_tests-100%25_UI-success)](TEST_DESIGN.md)
+[![Salesforce CLI](https://img.shields.io/badge/Salesforce_CLI-2.152.14-00a1e0?logo=salesforce&logoColor=white)](docs/AUTH_SETUP.md)
+[![UI tests](https://img.shields.io/badge/Business_tests-100%25_UI-success)](docs/TEST_DESIGN.md)
 
-Automatizált regresszió a [TesterArmy e2e](https://tester.army/e2e) keretrendszerrel, TypeScripttel és Chromiummal. **Mind a 36 alapregressziós eset UI-teszt:** a fixture-rekordok létrehozása, a folyamatlépések, a mentett adatok ellenőrzése és a takarítás is a Salesforce Lightning felületén történik. Nincs üzleti REST/SOQL-orákulum, API-s adatgenerálás vagy üzleti válaszmockolás.
+Automated regression with [TesterArmy e2e](https://tester.army/e2e), TypeScript and Chromium. **All 36 standard regression cases are UI tests:** fixtures, business actions, persisted-data assertions and cleanup operate through Salesforce Lightning. Authentication and one-time administrative provisioning are separate infrastructure tasks.
 
-Az Opportunityt **E2E Sales Manager** hozza létre és birtokolja. A UI-assertion minden Opportunity fixture-ben ellenőrzi az Owner és Created By személyt. **E2E Service Manager** külön munkamenettel vizsgálja a jogosultságokat és a folyamatátadást; saját Case-t is létrehoz és szerkeszt. Az admin kizárólag az egyszeri konfigurációhoz és elkülönített, pontos saját maintenance-takarításhoz használható.
+**E2E Sales Manager** creates and owns Opportunities. Every Opportunity fixture verifies Owner and Created By through UI. **E2E Service Manager** has a separate session for permission checks, Case creation/editing and the read-only Contract handoff. Administrators are excluded from business Opportunity creation.
 
-Az Allure részletes lépéslistát, test designokat és failed esetekhez **teljes hibakeresési logot, automatikus PNG-t és a konkrét hibakori URL-t** ad. A GitHub Actions az aktuális statikus HTML-riport **Netlifyra** publikálására konfigurált. Repository: [ak91hu/sf-e2e-tst](https://github.com/ak91hu/sf-e2e-tst). Élő riport: [Allure a Netlifyon](https://sf-e2e-tst-allure-ak91hu.netlify.app).
+Allure includes executed steps, expected test designs and **detailed failure logs, automatic PNG screenshots and the exact failure URL**. GitHub Actions runs the suite and publishes the completed report to **[Netlify](https://sf-e2e-tst-allure-ak91hu.netlify.app)**. [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Test design wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-**Legutóbbi teljes élő ellenőrzés: 38/38 passed**, 2026-10-03, 36 UI-eset + 2 setup, egy worker, nulla retry, 28m47s. Futás: `01a0ff02-1689-7d5e-baf6-e44950eca03c`; nincs fennmaradó saját tesztadat. A generált `allure-report/index.html` és a design megjelenítése Chromiumban is ellenőrzött. A riport Netlify production publikálása sikeres; a távoli GitHub Actions első ellenőrzése a feltöltést követően történik.
+**Latest verified full GitHub run: 38/38 passed**, [run 37103571188](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37103571188), 2026-10-03, one worker, zero retries and no remaining owned records. This run precedes the English/latest-component update; the next full run will verify that update. [Verification evidence](docs/VERIFICATION.md) distinguishes completed runs from pending work.
 
-## Dokumentáció és ellenőrzési állapot
+## Documentation
 
-| Dokumentum | Tartalom |
+All supporting Markdown documents are organized under `docs/`; this root README is the GitHub entry point.
+
+| Document | Contents |
 | --- | --- |
-| [TEST_DESIGN.md](TEST_DESIGN.md) | **41 test design, 321 kibontott lépés:** cél, szerepkör, előfeltételek, tesztadat, UI-művelet, elvárt eredmény és takarítás. |
-| [POM_REVIEW.md](POM_REVIEW.md) | Page Object Model felépítés, ellenőrzési megállapítások és javítások. |
-| [AUTH_SETUP.md](AUTH_SETUP.md) | JWT, egyszeri Salesforce-konfiguráció, két persona és e-mailkód nélküli futás. |
-| [GITHUB_NETLIFY.md](GITHUB_NETLIFY.md) | GitHub secrets, Actions, Allure history, Netlify site és publikálás. |
-| [VERIFICATION.md](VERIFICATION.md) | A tényleges élő futások, eredmények, bizonyítékok és korlátok. |
+| [Test designs](docs/TEST_DESIGN.md) | **41 designs, 321 explicit steps**, with Action / Data / Expected output, role, preconditions, fixture preparation and cleanup. |
+| [Wiki page sources](docs/wiki/Home.md) | One generated page per case, plus the wiki index and sidebar. |
+| [POM review](docs/POM_REVIEW.md) | Page Object Model structure, review findings and fixes. |
+| [Authentication setup](docs/AUTH_SETUP.md) | JWT, personas, permissions and email-code-free runs. |
+| [GitHub and Netlify](docs/GITHUB_NETLIFY.md) | Secrets, Actions, history, report publication and wiki maintenance. |
+| [Version audit](docs/VERSIONS.md) | Latest stable versions, primary sources and TypeScript compatibility. |
+| [Verification](docs/VERIFICATION.md) | Actual execution evidence and limitations. |
 
-A komponensbadge-ek rögzített verziókat jelölnek; az Actions badge a legutóbbi távoli workflow állapotát mutatja. A futás aktuális eredményét a VERIFICATION.md és az Allure mutatja. A három opcionális AI-eset elkészült és typecheckelt; élő sikerüket a rendelkezésre álló modellkvóta kimerülése miatt nem állítjuk.
+Package badges show exact pins. The Actions badge reflects the latest remote workflow. The three optional AI UI cases are implemented, typechecked and designed; their live success is unverified because available model quota was exhausted. Standard regression requires no AI model or model key.
 
-## Gyors indítás
+## Quick start
 
-Node.js **26 ajánlott**, minimum 24; npm és egy letöltött Playwright Chromium szükséges. Allure 3 Java nélkül, Node.js-en fut. A célorg ezen a gépen már konfigurált. Új gépen a `.env.example` másolatából állítsd be a két persona felhasználónevét, a Consumer Key-t és biztonságosan a privát JWT-kulcsot.
+Use **Node.js 26.10.0 and npm 12.2.0**, as pinned in CI and `.nvmrc`. The supported runtime minimum is Node 24. Allure 3 runs on Node without Java. This org is already configured; another machine needs the preauthorized role usernames, Consumer Key and private RSA key.
 
 ```powershell
 git clone https://github.com/ak91hu/sf-e2e-tst.git
 Set-Location sf-e2e-tst
 Copy-Item .env.example .env
-# Állítsd be a saját JWT-hitelesítést az AUTH_SETUP.md szerint.
+# Configure JWT authentication using docs/AUTH_SETUP.md.
+npm install --global npm@12.2.0 --no-audit --no-fund
 npm ci --no-audit --no-fund
 npm run install:browsers
 npm run doctor
 npm run typecheck
 npm run pom:check
 npm run design:check
+npm run wiki:check
 npm run test:regression
 npm run report
 npm run allure:generate
 npm run allure:open
 ```
 
-Linux/CI környezetben: `npm run install:browsers -- --with-deps`. A projekt a `.browsers` mappába telepíti a böngészőt. A `doctor` előfeltételeket ellenőriz, üzleti tesztet nem futtat és titkokat nem ír ki.
+On Linux/CI, install Chromium system dependencies with `npm run install:browsers -- --with-deps`. Browsers are stored in `.browsers`. `doctor` checks configuration and installed tools without running business tests or printing secrets.
 
-Az alapregresszió **modell és modellkulcs nélkül** fut. A Salesforce JWT → Single Access → natív frontdoor belépés friss Lightning-munkamenetet nyit, jelszó és ismétlődő e-mailkód nélkül. Hiányzó előengedélyezés vagy interaktív hitelesítési kényszer esetén a futás hibát jelez; nem vár e-mailkódra.
+JWT → Single Access → native frontdoor opens a fresh Lightning session without passwords or repeated email codes. Missing preauthorization or an unexpected interactive authentication policy causes a clear failure. A future maintenance notice is acknowledged using the real **Got it** UI link.
 
-## Felhasználók és jogosultságok
+## Users and permissions
 
-Cél: `https://orgfarm-80a620fbaf-dev-ed.develop.my.salesforce.com`.
+Target: `https://orgfarm-80a620fbaf-dev-ed.develop.my.salesforce.com`.
 
-| Persona | Felhasználónév | Jogosultság |
+| Persona | Username | Permissions |
 | --- | --- | --- |
-| E2E Sales Manager | `e2e.sales.manager.00dgk00000blbthuac@example.invalid` | Account, Contact, Opportunity, Contract, Quote, Product, Price Book CRUD; Contract aktiválás és aktivált saját tesztszerződés törlése. |
-| E2E Service Manager | `e2e.service.manager.00dgk00000blbthuac@example.invalid` | Account, Contact, Case CRUD; Opportunity és Contract olvasás; Opportunity létrehozás tiltott. |
+| E2E Sales Manager | `e2e.sales.manager.00dgk00000blbthuac@example.invalid` | Account, Contact, Opportunity, Contract, Quote, Product and Price Book CRUD; Contract activation and deletion of owned activated test Contracts. |
+| E2E Service Manager | `e2e.service.manager.00dgk00000blbthuac@example.invalid` | Account, Contact and Case CRUD; Opportunity and Contract read access; Opportunity creation denied. |
 
-Mindkét persona aktív, saját minimális profillal, szerepkörrel és permission settel. Nincs View All Data, Modify All Data, Manage Users, Customize Application vagy objektumszintű View All / Modify All joguk. A Contract-aktiválás Salesforce-függősége miatt a Sales Manager Order olvasási/szerkesztési jogot kapott, Order create/delete jogot nem. A négy Salesforce-licenc foglalt; meglévő felhasználót nem deaktiváltunk.
+Both personas have dedicated minimal profiles, roles and permission sets. Neither has View All Data, Modify All Data, Manage Users, Customize Application or object-level View All/Modify All. Salesforce Contract activation requires Sales Manager Order read/edit access; Order create/delete remains absent. All four org licenses are occupied; existing users were not deactivated.
 
-Az `SF_USERNAME` a konfigurációs admin; az üzleti felhasználó `SF_SALES_USERNAME`. Nincs admin fallback. A business session setup az admin azonosítóját visszautasítja, és az Opportunity New művelet külön guardot tartalmaz. Az integráció a profilmenüben ellenőrzi a tényleges Sales/Service személyt is.
+`SF_USERNAME` is the one-time configuration administrator. `SF_SALES_USERNAME` is the business user. Authentication rejects an administrator identity for business setup, and Opportunity New has a separate administrator guard. The integration verifies each active persona through the visible profile menu.
 
-## Környezeti beállítások
+## Configuration
 
-| Változó | Jelentés |
+| Variable | Purpose |
 | --- | --- |
-| `SF_BASE_URL` | Developer Edition My Domain origin; HTTPS, path/query nélkül. A jelenlegi validáció `*.develop.my.salesforce.com` orgra korlátozott. |
-| `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME` | A két előengedélyezett üzleti felhasználó. |
-| `SF_CLIENT_ID` | A JWT-képes External Client App Consumer Key-je. Consumer Secret nem kell. |
-| `SF_JWT_PRIVATE_KEY_FILE` | Helyi RSA PEM-kulcs; alapértelmezett munkafájl `.e2e-auth/jwt.key`. |
-| `SF_JWT_PRIVATE_KEY` | CI-ben teljes multiline PEM a repository secretből; fájl helyett használható. |
-| `SF_JWT_AUDIENCE` | Ezen a Developer Editionön `https://login.salesforce.com`. Más orgtípus illesztését az AUTH_SETUP írja le. |
-| `SF_TIME_ZONE` | A persona Salesforce-időzónája; alapértelmezés `Europe/Budapest`. |
-| `SF_OPPORTUNITY_RECORD_TYPE` | Opcionális Opportunity record type ID. |
-| `SF_STAGE_*`, `SF_WON_PROBABILITY`, `SF_LOST_PROBABILITY` | A saját sales process és százalékok; példaértékek `.env.example`-ben. |
-| `NETLIFY_SITE_ID`, `NETLIFY_AUTH_TOKEN` | Saját Allure report site és CI Netlify-hitelesítés. Helyben CLI-login használható. |
+| `SF_BASE_URL` | HTTPS Developer Edition My Domain origin without path/query; validation currently restricts `*.develop.my.salesforce.com`. |
+| `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME` | Preauthorized business personas. |
+| `SF_CLIENT_ID` | JWT-capable External Client App Consumer Key; no Consumer Secret required. |
+| `SF_JWT_PRIVATE_KEY_FILE` | Local RSA PEM key, normally `.e2e-auth/jwt.key`. |
+| `SF_JWT_PRIVATE_KEY` | Full multiline PEM in CI, used instead of a key file. |
+| `SF_JWT_AUDIENCE` | `https://login.salesforce.com` for this Developer Edition. |
+| `SF_TIME_ZONE` | Persona Salesforce timezone; default `Europe/Budapest`. |
+| `SF_OPPORTUNITY_RECORD_TYPE` | Optional Opportunity record type ID. |
+| `SF_STAGE_*`, `SF_WON_PROBABILITY`, `SF_LOST_PROBABILITY` | Org-specific sales process and probability values; examples in `.env.example`. |
+| `NETLIFY_SITE_ID`, `NETLIFY_AUTH_TOKEN` | Dedicated report site and CI deployment credentials; local CLI login is supported. |
 
-Az `.env` helyi; a meglévő process/CI változók elsőbbséget kapnak. A tanúsítvány jelenlegi lejárata **2027-10-02**. Új orgon az alkalmazás, profilok, permission setek, QuoteSettings és két felhasználó egyszeri provisioningje szükséges; az [AUTH_SETUP.md](AUTH_SETUP.md) részletezi. A konfigurációs SDK/CLI-hívások nem részei az üzleti teszteknek.
+Local `.env` values never overwrite existing process/CI variables. The current certificate expires **2027-10-02**. New orgs need one-time app, QuoteSettings, layout, profile, permission-set, role and user provisioning; see [authentication setup](docs/AUTH_SETUP.md).
 
-## Lefedettség
+## Coverage
 
-| Azonosítók | Darab | Viselkedés |
+| IDs | Count | Behavior |
 | --- | ---: | --- |
-| SF-AUTH-001 | 1 | Hitelesített Opportunity lista és New gomb. |
-| SF-OPP-001–013 | 13 | Prospecting → Qualification → Proposal → Negotiation → Closed Won; kötelező név/dátum/Stage; Unicode szerkesztés; Cancel create/edit/delete; Closed Lost és újranyitás; UI-törlés; 0 és 0.01 USD. |
-| SF-CON-001–009 | 9 | Draft; Account, dátum, 12 hónap; kötelező Account/Start Date/term; Unicode feltételek és 24 hónap; Cancel; UI-törlés; aktiválás, aktiváló személy és dátum. |
-| SF-QUO-001–009 | 9 | Draft; Opportunity/Account kapcsolat és lejárat; kötelező név; Cancel; Unicode/adó/szállítás/Grand Total; Presented → Accepted; UI-törlés; saját katalógus, 2 × 125.50 = 251.00 USD; Start/Stop Sync és Opportunity Amount. |
-| SF-ROLE-001–003 | 3 | Sales Owner/Created By; Service Opportunity-létrehozás tiltása listán és közvetlen New URL-en; Service Case New → Working. |
-| SF-E2E-001 | 1 | Sales Opportunity → Accepted Quote → Closed Won → Activated Contract → Service readonly átadás → vissza Sales-ra. |
-| SF-AUTH, SF-AUTH-SERVICE | +2 setup | Külön JWT-belépés, profilbizonyíték és mentett UI-session; a kiválasztott tesztek függőségeiként futnak. |
-| SF-AI-001–003 | +3 opcionális | Természetes nyelvű Opportunity/Contract/Quote UI-módosítás, assert és strukturált extract, determinisztikus orákulummal. |
+| SF-AUTH-001 | 1 | Authenticated Opportunity list and New button. |
+| SF-OPP-001–013 | 13 | Full sales lifecycle; required name/date/Stage; Unicode editing; cancel create/edit/delete; Closed Lost and reopening; deletion; 0 and 0.01 USD. |
+| SF-CON-001–009 | 9 | Draft, Account/start date/term; required fields; Unicode terms and 24 months; cancel; deletion; activation, activating user and date. |
+| SF-QUO-001–009 | 9 | Draft, relationships and expiry; required name; cancel; Unicode/tax/shipping/Grand Total; Presented → Accepted; deletion; owned catalogue with 2 × 125.50 = 251.00 USD; Start/Stop Sync and Opportunity Amount. |
+| SF-ROLE-001–003 | 3 | Sales ownership/creator; Service creation denied in list and direct New UI; Service Case New → Working. |
+| SF-E2E-001 | 1 | Sales Opportunity → Accepted Quote → Closed Won → Activated Contract → Service read-only handoff → return to Sales. |
+| SF-AUTH, SF-AUTH-SERVICE | +2 setups | Role-specific JWT login, visible profile verification and saved browser session. |
+| SF-AI-001–003 | +3 optional | Natural-language Opportunity/Contract/Quote UI edits, agent assertion and structured extraction with deterministic UI assertions. |
 
-Teljes normál futás: **36 eset + 2 setup = 38 eredmény**. A 41 design az opcionális AI-eseteket is tartalmazza. Szűrt futásnál az Allure csak a ténylegesen kiválasztott eseteket/setupokat exportálja; a többi eset nem növeli mesterséges skipped eredményekkel a riportot.
+The normal full run selects **36 cases + 2 setups = 38 results**. The 41 designs also cover optional AI cases. Filtered runs export only selected cases and dependencies to Allure.
 
-**Adatmodell:** standard Quote, nem CPQ. A standard Contract ebben az orgban az **Accounton** keresztül kapcsolódik a folyamathoz; nincs Opportunity.ContractId. Az integráció ugyanazt az Accountot és pontos Opportunity-linket vizsgálja.
+**Data model:** standard Salesforce Quote. Contract relates to the workflow through the **Account** in this org; Opportunity.ContractId is absent. The integration verifies the same Account and exact Opportunity link.
 
-**Dátumok:** a beírt relatív tesztdátumok UTC-alapúak. Closed Won mentéskor a Salesforce a jövőbeli Close Date-et a **felhasználó mai dátumára** változtatja. A teszt a mentés előtti/utáni napot az `SF_TIME_ZONE` időzónában számolja, így az UTC és a budapesti éjfél különbsége is kezelhető.
+**Dates:** relative input dates use UTC. On Closed Won, Salesforce changes future Close Date to the user's current date. Assertions calculate the dates immediately before/after Save in `SF_TIME_ZONE`, including midnight boundaries.
 
-## Futási parancsok
+## Commands
 
-| Parancs | Feladat |
+| Command | Purpose |
 | --- | --- |
-| `npm run test:list` | Esetek és setupok felsorolása, böngésző nélkül. |
-| `npm run test:regression` | Teljes alapregresszió. |
-| `npm run test:opportunity` / `test:contract` / `test:quote` | Objektum szerinti UI-regresszió. |
-| `npm run test:roles` / `test:integration` | Szerepkörök / teljes folyamatátadás. |
-| `npm run test:auth` / `test:smoke` | Belépési / smoke szelekció. |
-| `npm run test:e2e -- --grep SF-OPP-006` | Pontos eset vagy regex szerinti választás. |
-| `npm run test:headed` | Látható tesztböngésző. |
-| `npm run test:last-failed` | A korábbi report sikertelen eseteinek célzott futtatása. |
-| `npm run report` | Aktuális e2e összegzés; a regression exit code-ot adja vissza. |
-| `npm run allure:generate` | Aktuális befejezett futásból statikus Allure HTML. |
-| `npm run allure:open` | Allure HTML helyi szerveren, böngészőben. |
-| `npm run allure:deploy` | Az aktuális HTML Netlify production publikálása. |
+| `npm run test:list` | Collect cases and setup dependencies without opening a browser. |
+| `npm run test:regression` | Complete standard UI regression. |
+| `npm run test:opportunity` / `test:contract` / `test:quote` | Object-specific regression. |
+| `npm run test:roles` / `test:integration` | Role permissions / complete handoff. |
+| `npm run test:auth` / `test:smoke` | Authentication / smoke selection. |
+| `npm run test:e2e -- --grep SF-OPP-006` | Select by case ID or regex. |
+| `npm run test:headed` | Visible test browser. |
+| `npm run test:last-failed` | Rerun failures from the previous report explicitly. |
+| `npm run report` | Current summary; returns the original regression exit code. |
+| `npm run allure:generate` / `allure:open` | Generate current completed report / open locally. |
+| `npm run allure:deploy` | Publish current static HTML to Netlify production. |
+| `npm run versions:check` | Read-only latest stable component audit against primary registries. |
+| `npm run design:generate` / `design:check` | Generate / verify consolidated step designs. |
+| `npm run wiki:generate` / `wiki:check` | Generate / verify 43 wiki pages. |
 
-Egy worker, **0 retry**; 10 perces esethatár, 45 másodperces akciókeret, 30 másodperces assertion, 5 perces takarítási keret. Ne indíts párhuzamos élő futást ugyanarra az orgra. Az esetek saját adatot és izolált böngészőállapotot kapnak; a setup-sessionök a deklarált függőségek szerint állnak helyre.
+One worker, **zero retries**, 10-minute case timeout, 45-second action timeout, 30-second assertions and 5-minute cleanup timeout. Run only one live suite against the org at a time; GitHub concurrency queues CI runs. Each test has isolated browser state and owned data.
 
-## Page Object Model és keretrendszerhasználat
+## Page Object Model and framework capabilities
 
 ```text
-tests/                 üzleti folyamatok és elvárt eredmények
+tests/                 Business workflows and expected results
 pages/                 Account, Opportunity, Contract, Quote, Service, Catalog
-pages/components/      picklist és Quote Line Items wizard
-support/sales-ui.ts    közös appnavigáció, űrlap, Details, olvasás és UI-törlés
-support/core-fixtures  esetenkénti POM és finally takarítás
-support/auth-engine    engine-ben tartott JWT/frontdoor hitelesítés
-reporting/allure.ts    e2e → hivatalos Allure reporter SDK adapter
-docs/test-design.ts    szerkeszthető lépésdesignok
-scripts/               futtatás, riport, provisioning és helyreállítás
-maintenance/           kezdeti user UI-setup és pontos saját recovery
-validation/            külön infrastruktúra/Allure böngészős ellenőrzések
-unit/                  kriptográfiai/hitelesítési infrastructure ellenőrzések
+pages/components/      Picklist and Quote Line Items wizard
+support/sales-ui.ts    Shared navigation, forms, Details, reads and UI deletion
+support/core-fixtures  Per-case POM and finally cleanup
+support/auth-engine    JWT/frontdoor authentication inside the engine
+reporting/allure.ts    Official Allure reporter SDK adapter
+docs/                  Documentation, editable designs and generated wiki pages
+scripts/               Execution, reporting, provisioning and recovery
+maintenance/           Initial user UI setup and exact owned-record recovery
+validation/            Isolated browser infrastructure/report checks
+unit/                  Cryptography and authentication infrastructure checks
 ```
 
-Az üzleti tesztekben nincs közvetlen `getBy*` szelektor, DOM evaluation vagy `fetch`. A POM friss navigáció után látható Details mezőket, pontos rekordlinkeket és listakeresést olvas; nem nyúl alkalmazásállapothoz. A picklist az adott comboboxra célzott natív billentyűkkel választ; minden lépésnél a tényleges aktív opciót olvassa, és csak a cél ID-jánál nyom Entert. A még nem mentett választást a form fókusz/validációs frissítéséhez igazítja. Nincs fix várakozás vagy kényszerített kattintás. `npm run pom:check` őrzi a réteghatárt; a [POM_REVIEW](POM_REVIEW.md) részletezi.
+Business tests call page objects rather than raw selectors, DOM evaluation or fetch. Fresh record navigation and visible Details provide persisted-data assertions. Exact relationship links and list searches verify identity and deletion. Picklists use scoped native ArrowDown/Enter actions and the actual active option ID; there are no fixed sleeps or forced clicks. Formatted numeric inputs are compared strictly as numbers; text inputs retain exact string comparisons. [POM review](docs/POM_REVIEW.md) documents these decisions; `npm run pom:check` enforces the layer boundary.
 
-A keretrendszer session setup-függőségeit, saját fixture-eit, automatikusan várakozó szemantikus locátorait, `expect.poll` assertionjeit, tageket, célzott futtatást, model-free web engine-t és custom reportert használjuk. A pinned web engine 0.11.1 Salesforce synthetic ShadowRoot IDREF-kompatibilitási javítását a `postinstall` pontos verzió-/forrásellenőrzéssel alkalmazza; a Document viselkedése változatlan. Külön shadow-DOM harness ellenőrzi ezt.
+The suite uses e2e session dependencies, custom fixtures, semantic locators, automatic waiting, `expect.poll`, tags, filtered execution, the model-free web engine and a custom reporter. A source/version-guarded postinstall patch fixes Salesforce synthetic ShadowRoot IDREF lookup in web engine **0.11.2**; a dedicated synthetic UI case verifies it. Compiler checks use **TypeScript 7.0.2**; API-based Netlify dependencies use Microsoft's latest TypeScript 6 compatibility package. See [version audit](docs/VERSIONS.md).
 
-## Test designok karbantartása
+## Allure reports and debugging
 
-Minden eset saját táblázata kibontva tartalmazza az előkészítés és takarítás lépéseit is. A [docs/test-design.ts](docs/test-design.ts) a szerkeszthető forrás; a Markdown generált, az Allure-leírások ugyanebből készülnek.
-
-```powershell
-npm run design:generate
-npm run design:check
-```
-
-A check az e2e tényleges test collectionjén is összeveti az azonosítókat és forrásfájlokat: minden normál/AI esethez és auth setuphoz kell design, és nem maradhat futtathatatlan design. Új assertion vagy folyamatlépés esetén a design elvárt eredményét is frissítsd.
-
-## Allure riport és hibakeresés
-
-| Kimenet | Tartalom |
+| Output | Contents |
 | --- | --- |
-| `.e2e/report.json`, `junit.xml`, `summary.md` | Eredeti e2e eredmény, lépések és összegzés. |
-| `.e2e/allure-results/<run-id>` | Egyetlen tényleges futás Allure SDK eredményei. |
-| `.e2e/allure-results/current.json` | Aktuális run ID, kiválasztott esetek és exportált eredményfájlok száma. |
-| `allure-report/index.html` | Önálló statikus Allure 3 HTML, beágyazott adat és mellékletek. |
-| `allure-report/run-manifest.json` | A publikált futás ID-ja és eredeti exit code-ja. |
-| `test-history/history.jsonl` | Allure trend/history; CI cache őrzi az előző futásokat. |
+| `.e2e/report.json`, `junit.xml`, `summary.md` | Original execution results, steps and summary. |
+| `.e2e/allure-results/<run-id>` | Official SDK results for one actual run. |
+| `.e2e/allure-results/current.json` | Current run ID, selection count and exported result count. |
+| `allure-report/index.html` | Standalone Allure 3 HTML with embedded data and attachments. |
+| `allure-report/run-manifest.json` | Published run identity and original exit code. |
+| `test-history/history.jsonl` | Allure history, retained by CI cache. |
 
-Failed esetnél a teszt részleteiben:
+Open a failed/broken test to inspect:
 
-- **Test body:** API, locátor, időtartam, státusz, hibakód és elvárt/tényleges érték.
-- **Detailed attempt log:** minden végrehajtási lépés/esemény, elsődleges és másodlagos hiba, időzítés és cleanup.
-- **Failure URL / URL at failure:** a konkrét hibakori oldal URL-je, a takarítás előtti állapotból.
-- **Screenshot at failure:** a framework által automatikusan rögzített PNG az üzleti UI-ról.
-- **Redacted UI evidence:** szemantikus felületi napló, ha a framework rendelkezésre bocsátja.
-- **Description:** az adott eset célja, szerepköre, tesztadata és lépésenkénti elvárt eredménye.
+- **Test body:** operation, locator, timing, status, error code and expected/observed values.
+- **Detailed attempt log:** every recorded step/event, primary and secondary errors, timing and cleanup.
+- **Failure URL / URL at failure:** the actual page before cleanup, with authentication parameters redacted.
+- **Screenshot at failure:** automatic PNG captured by the framework.
+- **Redacted UI evidence:** semantic surface logs when available.
+- **Description:** role, preconditions and per-step Action, Data and Expected output.
 
-A titkok az engine-ben maradnak; a credential URL nem lesz publikus `browser.goto` naplóbejegyzés. A framework eredeti Secret-fill képvédelmét nem kerüljük meg: egyszeri jelszó-bootstrap után a képek elnyomottak. Böngészőindítás előtti infrastruktúrahibához nincs UI-screenshot. Trace/video kikapcsolt. Az Allure-adapter csak a saját futás teljesen redaktált evidence fájljait csatolja.
+Business login keeps credential URLs inside the engine and registers dynamic session secrets before UI observation. The original framework Secret-fill image protection remains enabled; one-time password bootstrap suppresses screenshots. Failures before browser startup have no UI to capture. Trace/video are disabled; the adapter attaches only fully redacted evidence within the current run's artifact directory.
 
-Az `allure:generate` ellenőrzi az aktuális report és results run ID-ját és darabszámát; nincs régi eredmények összekeverése. A szintetikus/diagnosztikai HTML-futások külön historyt használnak, így nem torzítják a regresszió trendjét.
+Report generation verifies current run ID and counts; it never merges previous or unrelated selected results. Infrastructure harnesses use separate output/history directories. **`npm run test:evidence-harness` deliberately fails two synthetic assertions**; its wrapper succeeds only after validating failed status, detailed logs, exact URLs, valid automatic PNGs and credential redaction. This verifies failure reporting without changing Salesforce data.
 
-## Netlify és GitHub Actions
+## GitHub Actions, Netlify and wiki
 
-A workflow: [.github/workflows/salesforce-regression.yml](.github/workflows/salesforce-regression.yml). PR-en credential nélküli source/POM/design/auth/evidence ellenőrzések futnak. A default branch forráskód-push, kézi futás és hétköznapi **02:00 UTC** schedule indítja az élő regressziót. Közös concurrency-csoport védi az orgot a párhuzamos CI-futásoktól.
+The [workflow](.github/workflows/salesforce-regression.yml) runs credential-free source/POM/design/wiki/auth/evidence checks on PRs. Default-branch source pushes, manual dispatch and weekdays at **02:00 UTC** also run live Salesforce regression. Markdown-only pushes skip the live run.
 
-**A sikertelen regresszió piros marad**, de a befejezett aktuális eredményből Allure készül és Netlify-deploy fut. A report linkje a Step Summaryban jelenik meg. Az artifact az eredeti reportot, redaktált evidence-et, Allure-t és pontos recovery-naplókat 14 napra menti; session-state, kulcs és authállomány nincs benne.
+A failed regression remains a **red job**, while its completed current report is still generated and deployed. The Step Summary links to Netlify. Artifacts retain original results, redacted evidence, SDK results, HTML and precise recovery journals for 14 days; auth/session/private-key files are excluded.
 
-Kötelező GitHub repository secrets: `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME`, `SF_CLIENT_ID`, `SF_JWT_PRIVATE_KEY`, **`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`**. A saját Netlify site beállítása és a részletes műveleti útmutató: [GITHUB_NETLIFY.md](GITHUB_NETLIFY.md). A helyi publikáló kizárólag a négy generált statikus fájlt és az aktuális futást fogadja el; `--no-build` mellett nem fut új Salesforce-tesztet.
+All six required secrets and eleven configuration variables are already set. Secrets: `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME`, `SF_CLIENT_ID`, `SF_JWT_PRIVATE_KEY`, `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`. The dedicated site belongs to the `ak91hu` Netlify team. Publication accepts only the four generated static files and uses `--prod --no-build`.
 
-Az `.env`, kulcsok, auth, sessionök, böngészők, helyi riportok, journalok és Netlify-konfiguráció Gitből kizártak. Mind a hat repository secret és a tizenegy szükséges konfigurációs variable beállítva. Kézi indítás: [Actions → Salesforce UI regression and Netlify Allure → Run workflow](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml). A csak Markdown-dokumentációt érintő push nem indít új élő futást.
+Wiki pages are generated from the same typed design source as Allure and the consolidated document. Each case has its own page and **Action / Data / Expected output** table. [Publication and maintenance instructions](docs/GITHUB_NETLIFY.md) cover the separate wiki Git repository.
 
-## Tesztadatok és helyreállítás
+## Test data and recovery
 
-Save előtt minden saját adat `E2E-TA-` egyedi nevet és `.e2e-data` naplóbejegyzést kap. A fixture `finally` ágában UI-törlés történik: Quote → Contract → Opportunity → Case → Price Book → Product → Account. A delete és az eltűnési UI-assertion után lesz `deleted: true`; cleanup-hiba megbuktatja az esetet.
+Before Save, every fixture receives a unique `E2E-TA-` name and `.e2e-data` journal entry. Cleanup runs in `finally`, deleting owned Quote, Contract, Opportunity, Case, Price Book, Product and Account records through UI in dependency order. IDs, exact names and Description markers protect unrelated data; deleted is set only after visible proof. There is no prefix-wide deletion or hard purge.
 
-Megszakadás után csak pontos naplófájlokból, UI-n lehet helyreállítani:
+If cleanup fails, keep the precise journal and run targeted recovery:
 
 ```powershell
-npm run data:recover -- .e2e-data/E2E-TA-attempt-<azonosító>.json
+npm run data:recover -- .e2e-data/<exact-attempt-journal>.json
 ```
 
-Nincs előtag szerinti válogatás nélküli törlés, más rekordok módosítása vagy Recycle Bin hard purge. A recovery idempotens: hiányzó rekordhoz korábbi sikeres UI-törlési napló, pontos név/típus Recycle Bin bizonyíték vagy frissen UI-n igazolt standard szülőtörlés kell. A Case-napló Service sessionnel takarítódik. A journalból származó objektum, origin, név és rekord-ID validált.
+The command accepts exact workspace attempt journal paths. Never run recovery concurrently with regression. Case journals use Service; standard business records use Sales. `.env`, private keys, auth, sessions, browser downloads, generated reports, journals and local Netlify state are ignored by Git.
 
-## Opcionális AI UI-esetek
+## Optional AI UI cases
 
-```powershell
-# Saját ChatGPT modell-hozzáférés és kvóta esetén egyszer:
-npm exec -- e2e login openai
-npm run test:ai
-```
+Set `E2E_ENABLE_AI=1` only for the optional AI configuration. For ChatGPT access, use `npx e2e login openai`; the Gateway provider needs `AI_GATEWAY_API_KEY`. Run `npm run test:ai`. The agent uses `act`, `assert` and Zod-backed `extract`; the same POM provides fixture preparation, deterministic persisted UI assertions and cleanup. Model access and quota are separate requirements.
 
-Alternatíva saját gateway-kulccsal: `E2E_MODEL_PROVIDER=gateway`, megfelelő `E2E_MODEL`, `AI_GATEWAY_API_KEY`. A három opcionális eset `agent.act`, `agent.assert`, Zod-sémás `agent.extract`, `unique(...)` cache-paramétereket és kizárólag UI-bizonyítékot olvasó project toolt használ. A konfiguráció cache read/write; a dinamikus saját rekordnév nem rontja el a lépés újrahasználhatóságát. Az AI-végrehajtás után minden üzleti állítást determinisztikus, friss UI-ellenőrzés követ.
-
-A modellkvóta kimerülése miatt az AI-ág élő sikerét még nem igazoltuk. Ez nem akadályozza a normál, model-free regressziót vagy az Allure/Netlify-riportot.
-
-## Infrastruktúra-ellenőrzések
+## Local checks
 
 ```powershell
+npm run typecheck
 npm run test:unit
+npm run pom:check
+npm run design:check
+npm run wiki:check
 npm run test:auth-harness
 npm run test:evidence-harness
-# Generált Allure HTML megnyitásának UI-ellenőrzése:
-npm run test:report-ui
+npm run versions:check
 ```
 
-A kilenc unit teszt JWT-aláírást, claims-et, audience/origin és URL-védelmet, replay ID-t és titokmentes hibákat ellenőriz. Az öt szintetikus böngészős auth/shadow/numeric teszt minden kérést elfog; nem lép be a Salesforce-ba. Az evidence harness két elkülönített UI-esetet szándékosan megbuktat, majd ellenőrzi a failed Allure-státuszt, részletes logot, pontos URL-t, automatikus PNG-t és a beágyazott hitelesítési URL-ek tokenmentességét. A wrapper ezek sikeres bizonyítása esetén ad exit 0-t; ez nem zöldre átírt üzleti teszt, és nem része a publikált regressziós reportnak.
-
-A report UI harness a már generált `allure-report/index.html` fájlt helyi HTTP-kiszolgálón, Chromiumban nyitja meg. Egy sikeres üzleti eset designjának megjelenítése külön is ellenőrizhető: `npm run test:report-ui -- allure-report/index.html "SF-OPP-001 | Létrehozás → Qualification → Proposal → Negotiation → Closed Won" --design`. A Salesforce-regresszió és ez a riportpróba ezen a gépen egymás után fusson.
-
-Ezek az infrastructure ellenőrzések az üzleti tesztkészlet futtató- és riportútvonalát validálják; Salesforce üzleti API-t nem tesztelnek. Az élő sandbox állapotát kizárólag a UI-regresszió bizonyítja.
-
-## Elsődleges források
-
-- [TesterArmy e2e repository](https://github.com/tester-army/e2e) és [hivatalos dokumentáció](https://e2e.tester.army/docs).
-- [Playwright Page Object Model](https://playwright.dev/docs/pom).
-- [Allure JS SDK](https://github.com/allure-framework/allure-js/blob/main/packages/allure-js-commons/README.md), [Allure 3 konfiguráció](https://allurereport.org/docs/v3/configure/) és [generálás](https://allurereport.org/docs/v3/generate-report/).
-- [Netlify CLI és publikálás](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/).
-- [Salesforce JWT bearer](https://help.salesforce.com/s/articleView?id=xcloud.remoteaccess_oauth_jwt_flow_ca.htm&language=en_US&type=5), [Single Access UI Bridge](https://help.salesforce.com/s/articleView?id=sf.frontdoor_singleaccess.htm&language=en_US&type=5), [Combobox](https://developer.salesforce.com/docs/platform/lightning-component-reference/guide/lightning-combobox.html).
+The unit and synthetic infrastructure checks are separate from the Salesforce business regression. Actual completed-run evidence is maintained in [docs/VERIFICATION.md](docs/VERIFICATION.md).

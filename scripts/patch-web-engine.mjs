@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const require = createRequire(import.meta.url);
 const entry = require.resolve('@e2e-dev/web');
 const pkg = JSON.parse(readFileSync(resolve(entry, '../../package.json'), 'utf8'));
-if (pkg.version !== '0.11.1') throw new Error('Review the Salesforce semantic compatibility patch before changing the web engine version.');
+if (pkg.version !== '0.11.2') throw new Error('Review the Salesforce semantic compatibility patch before changing the web engine version.');
 const path = resolve(entry, '../in-page/read-semantics.js');
 const source = readFileSync(path, 'utf8');
 const before = 'return root instanceof Document || root instanceof DocumentFragment ? root.getElementById(id) : null;';

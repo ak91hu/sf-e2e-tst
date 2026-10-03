@@ -1,7 +1,7 @@
 import { test } from '../support/core-fixtures.ts';
 
 // Setup tests are only runnable as dependencies of a regular test.
-test('SF-AUTH-001 | Hitelesített Opportunity lista elérhető', {
+test('SF-AUTH-001 | Authenticated Opportunity list is accessible', {
   session: 'salesforce',
   tags: ['auth', 'smoke', 'regression'],
 }, async ({ sales }) => {

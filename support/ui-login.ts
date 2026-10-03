@@ -36,7 +36,7 @@ export async function openSalesforceSession(app: App, screen: Screen, browser: B
         return false;
       }
       if (pathname.includes('/identity/') || pathname.includes('/login') || pathname.includes('/ChangePassword') || pathname === '/') {
-        throw new Error('Salesforce UI policy requires interactive authentication. Check pre-authorization, UI access and session policies in AUTH_SETUP.md. Regression never waits for an e-mail code.');
+        throw new Error('Salesforce UI policy requires interactive authentication. Check pre-authorization, UI access and session policies in docs/AUTH_SETUP.md. Regression never waits for an e-mail code.');
       }
       return pathname.startsWith('/lightning/');
     }, { timeout: 60_000 }).toBe(true);

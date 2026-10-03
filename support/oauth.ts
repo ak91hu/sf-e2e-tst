@@ -9,11 +9,11 @@ export interface JwtConfig {
 export function readJwtConfig(env: NodeJS.ProcessEnv = process.env): JwtConfig {
   const environment = readEnvironment(env);
   const clientId = env.SF_CLIENT_ID?.trim();
-  if (!clientId) throw new Error('SF_CLIENT_ID is missing. Complete the one-time External Client App setup in AUTH_SETUP.md.');
+  if (!clientId) throw new Error('SF_CLIENT_ID is missing. Complete the one-time External Client App setup in docs/AUTH_SETUP.md.');
   let privateKey = env.SF_JWT_PRIVATE_KEY;
   if (!privateKey && env.SF_JWT_PRIVATE_KEY_FILE) {
     try { privateKey = readFileSync(env.SF_JWT_PRIVATE_KEY_FILE, 'utf8'); }
-    catch { throw new Error('Cannot read SF_JWT_PRIVATE_KEY_FILE. See AUTH_SETUP.md.'); }
+    catch { throw new Error('Cannot read SF_JWT_PRIVATE_KEY_FILE. See docs/AUTH_SETUP.md.'); }
   }
   if (!privateKey) throw new Error('Set SF_JWT_PRIVATE_KEY_FILE locally or SF_JWT_PRIVATE_KEY in CI.');
   if (!environment.username) throw new Error('SF_SALES_USERNAME is missing. Business regression never falls back to the configuration administrator.');
@@ -66,7 +66,7 @@ async function post(url: string, body: URLSearchParams, headers: Record<string, 
   }
   if (!response.ok) {
     const code = typeof result === 'object' && result !== null && 'error' in result ? result.error : result;
-    throw new Error(`Salesforce OAuth failed (HTTP ${response.status}, ${typeof code === 'string' && safeErrors.has(code) ? code : 'unrecognized error'}). Check certificate, Consumer Key, pre-authorization, web scope and user access in AUTH_SETUP.md.`);
+    throw new Error(`Salesforce OAuth failed (HTTP ${response.status}, ${typeof code === 'string' && safeErrors.has(code) ? code : 'unrecognized error'}). Check certificate, Consumer Key, pre-authorization, web scope and user access in docs/AUTH_SETUP.md.`);
   }
   if (typeof result !== 'object' || result === null) throw new Error('Salesforce OAuth returned an invalid response.');
   return result as Record<string, unknown>;
