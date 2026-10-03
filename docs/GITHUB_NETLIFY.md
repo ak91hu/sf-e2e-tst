@@ -58,7 +58,7 @@ Open a failed/broken test in Allure. Executed steps include locator, duration, s
 
 Descriptions include per-step **Action / Data / Expected output**. Browser-startup failures cannot have UI screenshots. Original Secret-fill screenshot suppression remains active during initial password bootstrap; normal native JWT business sessions support automatic screenshots. Trace/video are disabled.
 
-`npm run test:evidence-harness` deliberately fails two isolated synthetic assertions. The wrapper passes only when failed status, detailed logs, exact URLs, automatic valid PNGs and credential redaction are verified. These results are never merged into the normal regression report/history.
+`npm run test:evidence-harness` deliberately fails three isolated synthetic assertions. The wrapper passes only when failed status, detailed logs, exact URLs, automatic valid PNGs and credential redaction are verified. These results are never merged into the normal regression report/history.
 
 ## Wiki publication and maintenance
 

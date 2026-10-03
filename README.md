@@ -184,7 +184,7 @@ Open a failed/broken test to inspect:
 
 Business login keeps credential URLs inside the engine and registers dynamic session secrets before UI observation. The original framework Secret-fill image protection remains enabled; one-time password bootstrap suppresses screenshots. Failures before browser startup have no UI to capture. Trace/video are disabled; the adapter attaches only fully redacted evidence within the current run's artifact directory.
 
-Report generation verifies current run ID and counts; it never merges previous or unrelated selected results. Infrastructure harnesses use separate output/history directories. **`npm run test:evidence-harness` deliberately fails two synthetic assertions**; its wrapper succeeds only after validating failed status, detailed logs, exact URLs, valid automatic PNGs and credential redaction. This verifies failure reporting without changing Salesforce data.
+Report generation verifies current run ID and counts; it never merges previous or unrelated selected results. Infrastructure harnesses use separate output/history directories. **`npm run test:evidence-harness` deliberately fails three synthetic assertions**; its wrapper succeeds only after validating failed status, detailed logs, exact URLs, valid automatic PNGs and credential redaction. The third probe verifies that a Service-side failure retains its Contract URL and screenshot before deferred teardown restores Sales for cleanup. These checks use intercepted UI pages and do not change Salesforce data.
 
 ## GitHub Actions, Netlify and wiki
 

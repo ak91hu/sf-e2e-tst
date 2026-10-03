@@ -29,11 +29,13 @@ The version audit on 2026-10-03 reports **19/19 current stable direct components
 | --- | --- |
 | TypeScript 7 | `npm run typecheck`: exit 0, including business, POM, auth, AI, maintenance, reporter and validation sources. |
 | Authentication/security unit tests | **9 passed**, covering JWT, origin validation, error redaction and nested redirect credentials. |
-| Latest e2e/web compatibility | Auth/maintenance/ShadowRoot/numeric synthetic UI harness **5 passed**, `.validation/auth-harness/1791010918185/report.json`. |
-| Failure evidence with latest components | Two intentional failed assertions, wrapper exit 0; detailed logs, exact URLs, valid automatic PNGs and OTP/checksum/SID/contentDoor redaction verified. `.validation/allure-failure-harness/1791011020687/report.json`. |
+| Latest e2e/web compatibility | Auth/maintenance/ShadowRoot/numeric synthetic UI harness **5 passed**, `.validation/auth-harness/1791012097409/report.json`. |
+| Failure evidence with latest components | Three intentional failed assertions, wrapper exit 0; detailed logs, exact URLs, automatic PNGs and credential redaction verified. The Service failure retains its Contract page before deferred Sales cleanup restoration. `.validation/allure-failure-harness/1791016117353/report.json`. |
+| Latest failure HTML UI | Chromium verified visible Detailed attempt log, Failure URL and Screenshot at failure for the Service-side failure; 1 passed, `.validation/report-ui/1791016167151/report.json`. |
+| Clean installation | npm 12.2.0 `npm ci` succeeded from the lockfile; the scoped web-engine patch was reapplied and all local checks passed. Local browser assets are on a dedicated D-drive directory linked from ignored `.browsers` to avoid C-drive space pressure. |
 | POM boundary | Seven business source files contain no direct locators, DOM evaluation, business fetch or fixed sleep. |
 | Designs | **55 designs, 475 steps**, matching executable normal/AI cases and setup IDs. Per-step Action / Data / Expected output. |
-| Wiki | **57 pages** generated; 55 designs plus Home/sidebar. The original 43-page wiki is published; the expansion will be synchronized after the source update. [Live wiki](https://github.com/ak91hu/sf-e2e-tst/wiki). |
+| Wiki | **57 pages** published and verified against their sources; 55 designs plus Home/sidebar. Rendered Action / Data / Expected output headers are verified. [Live wiki](https://github.com/ak91hu/sf-e2e-tst/wiki). |
 
 The optional AI cases are implemented, typechecked and designed. Their live success is **not verified** because available model quota was exhausted. They are excluded from normal model-free regression.
 

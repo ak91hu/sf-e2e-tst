@@ -162,7 +162,7 @@ add('SF-E2E-001', 'Complete Sales → Service handoff', 'integration', `${draftD
   ['Activate Contract and confirm; open fresh Details.', 'Activated; 12 months; same Account; Activated By = Sales Manager; Activated Date populated.'],
   ['Clear browser state; open new Service JWT session; open and close profile menu.', 'Visible profile name E2E Service Manager; new Service session active.'],
   ['Open fresh Details of the same Contract as Service Manager.', 'Activated, owned Account and Description marker readable; Edit and Delete button counts zero.'],
-  ['Finally: open new Sales JWT session, verify profile and open fresh Opportunity Details.', 'E2E Sales Manager active; owned Opportunity Closed Won with 100%; cleanup runs as Sales.'],
+  ['After successful Service checks, open new Sales JWT session, verify profile and open fresh Opportunity Details; on failure, defer Sales restoration until evidence capture in fixture teardown.', 'E2E Sales Manager active; owned Opportunity Closed Won with 100%; cleanup runs as Sales.'],
 ], `${sales} → ${service} → ${sales}`, 'opportunity');
 add('SF-AI-001', 'AI Opportunity editing', 'agent/sales', `${draftData} New unique name; Amount = 543.21.`, [
   ['Open Opportunity Edit; agent.act sets name and amount and saves.', 'Dialog closes; agent operates through UI only.'],
@@ -250,7 +250,7 @@ add('SF-E2E-002', 'Complete product sale through Contract and Service handoff', 
   ['Edit Special Terms; Save; Activate and confirm.', 'Activated; term 24; exact agreed terms; activating Sales user and nonempty activation date.', 'Special Terms: Agreed delivery in 30 days; service SLA 8 hours.'],
   ['Clear state; open fresh Service JWT session and verify profile.', 'Visible profile is E2E Service Manager.', 'Service role; preauthorized client/key, values withheld.'],
   ['Read the same activated Contract as Service.', 'Same Account, Activated, term 24, exact terms and marker; Edit/Delete absent.', 'Owned Contract ID; expected 24 months and agreed terms.'],
-  ['Finally restore Sales with fresh JWT and verify profile.', 'E2E Sales Manager is active; UI cleanup will run with Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
+  ['Restore Sales with fresh JWT after successful Service checks and verify profile; on failure, defer restoration until evidence capture in fixture teardown.', 'E2E Sales Manager is active; UI cleanup will run with Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
   ['Reread Opportunity, Quote and Contract through fresh Details.', 'Won/100%/251.00; Quote Accepted/not syncing/251.00; Contract Activated/24 months/exact terms.', 'The exact owned Opportunity, Quote, Contract and Account IDs.'],
 ], `${sales} → ${service} → ${sales}`);
 add('SF-E2E-003', 'Recover a lost sale and replace a denied Quote', 'integration', `${draftData} Lost → Qualification → Proposal → Negotiation; Denied and revised Accepted Quotes; charges 12.34+5.67=18.01; Won; revised 24-month Activated Contract; Service handoff.`, [
@@ -269,7 +269,7 @@ add('SF-E2E-003', 'Recover a lost sale and replace a denied Quote', 'integration
   ['Activate Contract and confirm; read Details.', 'Activated; term 24; exact revised terms; activating Sales user/date.', 'Owned Contract ID; same Account; term 24 and revised terms.'],
   ['Clear state; open fresh Service JWT session and verify profile.', 'Visible profile E2E Service Manager.', 'Service role; preauthorized client/key, values withheld.'],
   ['Read the same Contract as Service.', 'Activated; term 24; exact Account, terms and marker; Edit/Delete absent.', 'Owned Contract ID, Account name, revised terms and marker.'],
-  ['Finally restore Sales with fresh JWT and verify profile.', 'Sales Manager active; cleanup uses Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
+  ['Restore Sales with fresh JWT after successful Service checks and verify profile; on failure, defer restoration until evidence capture in fixture teardown.', 'Sales Manager active; cleanup uses Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
   ['Reread the Opportunity and both Quotes.', 'Opportunity Won/100%/18.01; revised Quote Accepted/18.01; initial Quote Denied; exact relationships persist.', 'Owned Opportunity and distinct initial/revised Quote IDs.'],
 ], `${sales} → ${service} → ${sales}`, 'opportunity');
 export const testDesigns: readonly TestDesign[] = cases;

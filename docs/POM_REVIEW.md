@@ -28,6 +28,7 @@ flowchart TD
 | Persistence | Save is followed by fresh record navigation and Details reads. Exact Account/Opportunity link IDs verify relationships. DOM evaluation reads only visible fields. |
 | Owned data | A pre-Save journal, exact ID/name and Description marker bind fixtures to the case. Opening foreign or already-deleted records is rejected. |
 | Role correctness | Opportunity creation rejects administrators; UI Owner/Created By is verified. Integration opens separate JWT sessions and verifies visible profile identity. |
+| Multi-role failure evidence | Workflow persona fixture depends on the owned-data fixture. Successful Service checks explicitly restore Sales; a failed Service check leaves its UI intact until the runner captures evidence. Deferred persona teardown then restores Sales before owned-record cleanup. A synthetic UI failure verifies both the original Contract URL/PNG and the later Sales navigation. |
 | Cleanup | UI deletion in fixture finally; unfinished forms discarded. Closing dialogs must disappear before the next action. |
 | Authentication boundary | JWT adapter is infrastructure; setup verifies actual UI access/profile. Business page objects do not read authentication secrets. |
 | Optional AI path | Same POM preparation, deterministic persisted UI assertions and cleanup for all three AI UI cases. |

@@ -1,6 +1,8 @@
 import { expect } from 'e2e';
 import { test } from '../support/auth-engine.ts';
 import { environment } from '../support/environment.ts';
+import { test as coreTest } from '../support/core-fixtures.ts';
+import { WorkflowPersonas } from '../support/workflow-personas.ts';
 
 // Intentional infrastructure canary, excluded from Salesforce regression.
 // Every request is intercepted; no business data or org request is involved.
@@ -30,4 +32,29 @@ test('Allure nested authentication URL redaction canary', async ({ browser, sale
   await salesforceAuth.open('sales');
   await expect(screen.getByRole('heading', 'Future maintenance')).toBeVisible();
   await expect(screen.getByRole('link', 'Got it')).toHaveText('Intentional nested failure', { timeout: 500 });
+});
+
+const workflowTest = coreTest.extend<{ personas: WorkflowPersonas }>({
+  personas: async ({ sales, app }, use) => {
+    void sales;
+    const personas = new WorkflowPersonas(async role => {
+      await app.open(new URL(role === 'service'
+        ? '/lightning/r/Contract/800000000000001AAA/view?evidence=role-restoration'
+        : '/lightning/o/Opportunity/list?evidence=restored-sales', environment.baseUrl).href);
+    });
+    try { await use(personas); } finally { await personas.restoreForCleanup(); }
+  },
+});
+
+workflowTest('Allure Service failure capture before Sales cleanup restoration', async ({ browser, screen, personas }) => {
+  await browser.route('**/*', route => route.fulfill({ headers: { 'Content-Type': 'text/html' }, body:
+    new URL(route.request.url).pathname.startsWith('/lightning/r/Contract/')
+      ? '<title>Service Contract</title><h1>Service Contract evidence fixture</h1><button>Edit</button>'
+      : '<title>Sales cleanup</title><h1>Restored Sales cleanup identity</h1>' }));
+  await personas.service();
+  await expect(screen.getByRole('heading', 'Service Contract evidence fixture')).toBeVisible();
+  // Deliberately expose an unauthorized action: evidence must retain this UI,
+  // even though fixture teardown subsequently navigates to the Sales page.
+  await expect(screen.getByRole('button', 'Edit')).toHaveCount(0, { timeout: 500 });
+  await personas.sales();
 });
