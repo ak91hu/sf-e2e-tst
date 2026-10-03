@@ -62,7 +62,7 @@ Descriptions include per-step **Action / Data / Expected output**. Browser-start
 
 ## Wiki publication and maintenance
 
-The wiki is a separate Git repository. All **43 generated pages** are maintained under `docs/wiki`: 41 case/setup designs, Home and sidebar. Each case includes preparation and cleanup with exactly **Action**, **Data** and **Expected output** columns.
+The wiki is a separate Git repository. All **57 generated pages** are maintained under `docs/wiki`: 55 case/setup designs, Home and sidebar. Each case includes preparation and cleanup with exactly **Action**, **Data** and **Expected output** columns.
 
 ```powershell
 npm run design:generate
@@ -76,6 +76,6 @@ git -C <local-wiki-directory> commit -m "Update Salesforce UI test designs"
 git -C <local-wiki-directory> push
 ```
 
-The wiki is published: all 43 remote Markdown pages match the generated sources, and a rendered case page contains the requested three columns. For another uninitialized wiki, first save Home through GitHub's editor before cloning. Avoid editing generated files directly; change `docs/test-design.ts` and regenerate so Allure, consolidated designs and wiki remain consistent. Wiki publication does not trigger the Salesforce regression workflow.
+The wiki is published: the published remote Markdown pages match the generated sources, and a rendered case page contains the requested three columns. For another uninitialized wiki, first save Home through GitHub's editor before cloning. Avoid editing generated files directly; change `docs/test-design.ts` and regenerate so Allure, consolidated designs and wiki remain consistent. Wiki publication does not trigger the Salesforce regression workflow.
 
 Sources: [GitHub wiki editing](https://docs.github.com/en/communities/documenting-your-project-with-wikis/adding-or-editing-wiki-pages), [e2e framework](https://github.com/tester-army/e2e), [Allure reporter SDK](https://github.com/allure-framework/allure-js/blob/main/packages/allure-js-commons/README.md), [Allure 3 configuration](https://allurereport.org/docs/v3/configure/), [Netlify CLI](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/).

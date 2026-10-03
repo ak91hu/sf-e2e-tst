@@ -1,6 +1,6 @@
 # Salesforce UI step-level test designs
 
-41 designs: 36 default regression UI cases, 3 optional AI UI cases and 2 authentication setups. Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands its shared preparation and cleanup steps.
+55 designs: 50 default regression UI cases, 3 optional AI UI cases and 2 authentication setups. Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands its shared preparation and cleanup steps.
 
 Salesforce business data is created, verified and cleaned up exclusively through UI. Authentication endpoints and one-time administrative provisioning are configuration infrastructure. Each case owns isolated data; administrators never create Opportunities. Visible fields, controls, record URLs and list results prove each step. There are no fixed sleeps, API oracles or automatic test retries.
 
@@ -51,6 +51,20 @@ Editable source: [test-design.ts](test-design.ts). Generate with `npm run design
 | [SF-AI-003](#sf-ai-003) | AI Quote acceptance and extraction | E2E Sales Manager |
 | [SF-AUTH](#sf-auth) | E2E Sales Manager JWT → Lightning session setup | E2E Sales Manager |
 | [SF-AUTH-SERVICE](#sf-auth-service) | E2E Service Manager JWT → Lightning session setup | E2E Service Manager |
+| [SF-OPP-014](#sf-opp-014) | Persist a past Close Date on an open Opportunity | E2E Sales Manager |
+| [SF-OPP-015](#sf-opp-015) | Move an open Opportunity backwards through stages | E2E Sales Manager |
+| [SF-OPP-016](#sf-opp-016) | Persist a seven-digit amount with cents | E2E Sales Manager |
+| [SF-OPP-017](#sf-opp-017) | Edit a grouped decimal amount back to zero | E2E Sales Manager |
+| [SF-CON-010](#sf-con-010) | Edit Contract Start Date | E2E Sales Manager |
+| [SF-CON-011](#sf-con-011) | Persist a one-month Draft Contract | E2E Sales Manager |
+| [SF-CON-012](#sf-con-012) | Cancel Contract activation | E2E Sales Manager |
+| [SF-CON-013](#sf-con-013) | Cancel Draft Contract deletion | E2E Sales Manager |
+| [SF-QUO-010](#sf-quo-010) | Deny a Quote without changing its Opportunity | E2E Sales Manager |
+| [SF-QUO-011](#sf-quo-011) | Persist a past Quote expiration date | E2E Sales Manager |
+| [SF-QUO-012](#sf-quo-012) | Reset Quote tax and shipping to zero | E2E Sales Manager |
+| [SF-QUO-013](#sf-quo-013) | Isolate two Quotes under one Opportunity | E2E Sales Manager |
+| [SF-E2E-002](#sf-e2e-002) | Complete product sale through Contract and Service handoff | E2E Sales Manager → E2E Service Manager → E2E Sales Manager |
+| [SF-E2E-003](#sf-e2e-003) | Recover a lost sale and replace a denied Quote | E2E Sales Manager → E2E Service Manager → E2E Sales Manager |
 
 ## SF-AUTH-001
 
@@ -987,3 +1001,367 @@ Editable source: [test-design.ts](test-design.ts). Generate with `npm run design
 | 1. Start role-specific JWT / singleaccess authentication; follow the real Got it UI link if a future maintenance notice appears. | JWT role E2E Service Manager; configured client and RSA key; OTP/checksum values withheld. | Native Lightning login completes without interactive code; tokens and nested redirect session parameters redacted. |
 | 2. Verify Opportunity list and View profile. | Role E2E Service Manager; /lightning/o/Opportunity/list; View profile. | Search this list visible; profile name exactly E2E Service Manager. |
 | 3. session.save('service'). | Session name: service; authenticated browser storage. | Authenticated session can be saved; no business data changed. |
+
+## SF-OPP-014
+
+**Objective:** Persist a past Close Date on an open Opportunity
+
+**Source:** [tests/opportunity.e2e.ts](../tests/opportunity.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Close Date = UTC today -7 days; Prospecting; Amount = 12345.67 USD.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Create an Opportunity under the owned Account with Close Date seven days in the past; Save. | Generated Opportunity name; owned Account ID; UTC date -7 days; Prospecting; 12345.67 USD; default description. | The dialog closes; the owned Opportunity ID is known. |
+| 5. Open fresh Details and verify the complete Opportunity. | Owned Opportunity ID; date -7 days; original Amount 12345.67 USD and Prospecting. | The exact past date persists; all fields, Account link and Sales Owner/Created By are correct. |
+| 6. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-OPP-015
+
+**Objective:** Move an open Opportunity backwards through stages
+
+**Source:** [tests/opportunity.e2e.ts](../tests/opportunity.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Negotiation/Review → Proposal/Price Quote → Qualification.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Edit Stage = Negotiation/Review; Save and open fresh Details. | Owned Opportunity ID; target Stage Negotiation/Review; original Amount 12345.67 USD. | Stage = Negotiation/Review; original fields, Account relationship and Sales ownership persist. |
+| 7. Edit Stage = Proposal/Price Quote; Save and open fresh Details. | Owned Opportunity ID; target Stage Proposal/Price Quote; original Amount 12345.67 USD. | Stage = Proposal/Price Quote; original fields, Account relationship and Sales ownership persist. |
+| 8. Edit Stage = Qualification; Save and open fresh Details. | Owned Opportunity ID; target Stage Qualification; original Amount 12345.67 USD. | Stage = Qualification; original fields, Account relationship and Sales ownership persist. |
+| 9. Verify final Qualification probability. | Qualification; configured Lost 0% and Won 100% boundaries. | Probability remains strictly between the configured Lost and Won probabilities. |
+| 10. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-OPP-016
+
+**Objective:** Persist a seven-digit amount with cents
+
+**Source:** [tests/opportunity.e2e.ts](../tests/opportunity.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Amount = 1000000.99 USD.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Create the Opportunity with a seven-digit amount and cents; Save. | Amount 1000000.99 USD; Prospecting; UTC date +30 days; owned Account ID; generated name. | The form closes; the owned record URL is visible. |
+| 5. Open fresh Details and verify all Opportunity fields. | Owned Opportunity ID; expected visible USD amount $1,000,000.99. | Amount is exactly 1000000.99 to two decimal places; other fields, links and Sales ownership are correct. |
+| 6. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-OPP-017
+
+**Objective:** Edit a grouped decimal amount back to zero
+
+**Source:** [tests/opportunity.e2e.ts](../tests/opportunity.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Amount 12345.67 → 1000000.99 → 0 USD.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Edit Amount to 1000000.99; Save and verify fresh Details. | Amount 1000000.99 USD; original name/date/Stage/description/Account. | The grouped decimal amount persists; other Opportunity fields and relationships are unchanged. |
+| 7. Edit Amount to zero; Save and verify fresh Details. | Amount 0 USD; original name/date/Stage/description/Account. | Amount is 0.00 USD rather than empty; other fields and Sales ownership persist. |
+| 8. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-CON-010
+
+**Objective:** Edit Contract Start Date
+
+**Source:** [tests/contract.e2e.ts](../tests/contract.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Start Date = UTC today +7 days; term 12.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Complete New Contract with the owned Account, UTC current Start Date, 12 months, unique Description marker and Unicode Special Terms. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Save and completed fields are visible; the owned Account is prefilled. |
+| 5. Save the Contract and open fresh Details. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Draft; correct Account, Start Date, 12 months, Description and Special Terms; Created By is E2E Sales Manager; Contract Number enters the cleanup journal. |
+| 6. Edit Contract Start Date; Save. | Owned Draft Contract ID; UTC date +7 days. | The dialog closes. |
+| 7. Open fresh Details. | Expected date +7 days; term 12; owned Account name and Description marker. | New Start Date, 12 months, owned Account, Draft status and exact Description marker persist. |
+| 8. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-CON-011
+
+**Objective:** Persist a one-month Draft Contract
+
+**Source:** [tests/contract.e2e.ts](../tests/contract.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Term = 1 month; UTC current Start Date.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Create Contract under the owned Account with one-month term; Save. | Owned Account ID; UTC current Start Date; term 1; unique Description marker and Unicode Special Terms. | The form closes; owned Contract ID and Contract Number are known. |
+| 5. Open fresh Details. | ContractTerm 1; Status Draft; owned Account name. | Term is 1; Draft status and owned Account persist; the creation helper also verifies fields and Sales creator. |
+| 6. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-CON-012
+
+**Objective:** Cancel Contract activation
+
+**Source:** [tests/contract.e2e.ts](../tests/contract.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Draft Contract; term 12.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Complete New Contract with the owned Account, UTC current Start Date, 12 months, unique Description marker and Unicode Special Terms. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Save and completed fields are visible; the owned Account is prefilled. |
+| 5. Save the Contract and open fresh Details. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Draft; correct Account, Start Date, 12 months, Description and Special Terms; Created By is E2E Sales Manager; Contract Number enters the cleanup journal. |
+| 6. Open Show more actions → Activate; Cancel the confirmation. | Owned Draft Contract ID; Activate confirmation; Cancel button. | The activation dialog closes; the Contract remains Draft. |
+| 7. Open fresh Details. | Status Draft; ContractTerm 12; owned Account name and marker. | Draft, 12 months and owned Account persist; the Description marker identifies the same record. |
+| 8. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-CON-013
+
+**Objective:** Cancel Draft Contract deletion
+
+**Source:** [tests/contract.e2e.ts](../tests/contract.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Complete New Contract with the owned Account, UTC current Start Date, 12 months, unique Description marker and Unicode Special Terms. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Save and completed fields are visible; the owned Account is prefilled. |
+| 5. Save the Contract and open fresh Details. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Draft; correct Account, Start Date, 12 months, Description and Special Terms; Created By is E2E Sales Manager; Contract Number enters the cleanup journal. |
+| 6. Open the Contract Delete dialog. | Owned Draft Contract ID and Contract Number. | The Delete confirmation is visible. |
+| 7. Cancel and open fresh Details. | Cancel; expected Status Draft, term 12, owned Account name and marker. | Draft, 12 months, owned Account and exact Description marker persist. |
+| 8. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-QUO-010
+
+**Objective:** Deny a Quote without changing its Opportunity
+
+**Source:** [tests/quote.e2e.ts](../tests/quote.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Status = Denied; Opportunity remains Prospecting.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 7. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 8. Edit Quote Status to Denied; Save. | Owned Quote ID; Status Denied. | The dialog closes. |
+| 9. Verify fresh Quote Details, exact Opportunity link and full Opportunity Details. | Owned Quote name and ID; owned Opportunity ID; original Stage Prospecting and Amount 12345.67 USD. | Quote is Denied with the same name/Opportunity; original Opportunity fields and Sales ownership persist. |
+| 10. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-QUO-011
+
+**Objective:** Persist a past Quote expiration date
+
+**Source:** [tests/quote.e2e.ts](../tests/quote.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Expiration Date = UTC today -1 day.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 7. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 8. Edit Expiration Date to yesterday; Save. | Owned Draft Quote ID; UTC date -1 day. | The dialog closes. |
+| 9. Open fresh Details and verify the exact Opportunity link. | Expected date -1 day; Status Draft; owned Quote name and Opportunity ID. | Exact past expiry, original Quote name, Draft status and owned Opportunity persist. |
+| 10. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-QUO-012
+
+**Objective:** Reset Quote tax and shipping to zero
+
+**Source:** [tests/quote.e2e.ts](../tests/quote.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Tax/Shipping 12.34/5.67 → 0/0; GrandTotal 18.01 → 0.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 7. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 8. Edit Tax and Shipping and Handling; Save and open fresh Details. | Tax 12.34 USD; shipping 5.67 USD; Quote has no product lines. | Tax = 12.34; ShippingHandling = 5.67; GrandTotal = 18.01; name and Draft persist. |
+| 9. Edit both charges to zero; Save and open fresh Details. | Tax 0 USD; shipping 0 USD; GrandTotal 0 USD. | Tax, ShippingHandling and GrandTotal are all zero; original name and Draft status persist. |
+| 10. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-QUO-013
+
+**Objective:** Isolate two Quotes under one Opportunity
+
+**Source:** [tests/quote.e2e.ts](../tests/quote.e2e.ts)
+
+**Role:** E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Primary Quote Denied; Alternative Quote Draft → Presented.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 7. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 8. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 9. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 10. Edit the first Quote to Denied; Save; read both Quotes and exact Opportunity links. | Two distinct generated Quote names/IDs; same owned Opportunity ID; first Status Denied, second Draft. | First Quote is Denied; second remains Draft; each exact name/ID points to the same owned Opportunity. |
+| 11. Edit the second Quote to Presented; Save; reread both and the complete Opportunity. | Second Status Presented; first Denied; original Opportunity Amount 12345.67 USD and Stage Prospecting. | Second Quote is Presented; first remains Denied; original Opportunity data and Sales ownership persist. |
+| 12. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-E2E-002
+
+**Objective:** Complete product sale through Contract and Service handoff
+
+**Source:** [tests/integration.e2e.ts](../tests/integration.e2e.ts)
+
+**Role:** E2E Sales Manager → E2E Service Manager → E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Product 125.50 USD ×2; Quote Presented → Accepted; sync on/off; Opportunity Won; Contract 24 months; Service read-only.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager → E2E Service Manager → E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Create an owned active Product and standard price through UI. | Unique Product name/code; Active; unit price 125.50 USD. | The Product and price saves complete; owned Product ID is known. |
+| 3. Create an owned active custom Price Book and add that exact Product. | Owned Price Book name/ID; owned Product ID; Active. | Price Book Entries (1); exact Product row and 125.50 USD visible. |
+| 4. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 5. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 6. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 7. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 8. Set Opportunity Stage = Qualification; Save and verify fresh Details. | Owned Opportunity ID; Stage Qualification. | Stage, fields, relationships and Sales ownership are correct. |
+| 9. Set Opportunity Stage = Proposal/Price Quote; Save and verify fresh Details. | Owned Opportunity ID; Stage Proposal/Price Quote. | Stage, fields, relationships and Sales ownership are correct. |
+| 10. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 11. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 12. Add the owned Product to the Quote with quantity two; Save. | Owned Product/Price Book IDs; unit price 125.50; quantity 2. | Line quantity 2.00; Subtotal, TotalPrice and GrandTotal = 251.00; exact Product link visible. |
+| 13. Set Quote Status = Presented; Save; verify Details and exact Opportunity link. | Owned Quote ID; Status Presented; total 251.00 USD. | Status Presented; owned name/Account/Opportunity; all totals 251.00. |
+| 14. Set Quote Status = Accepted; Save; verify Details and exact Opportunity link. | Owned Quote ID; Status Accepted; total 251.00 USD. | Status Accepted; owned name/Account/Opportunity; all totals 251.00. |
+| 15. Start Sync and confirm Continue; read the Opportunity. | Accepted Quote ID; owned Opportunity ID; expected amount 251.00 USD. | Syncing true; Opportunity Amount = 251.00; other fields and Sales ownership persist. |
+| 16. Stop Sync and confirm Continue; read the Opportunity. | Same Quote/Opportunity IDs; expected amount 251.00 USD. | Syncing false; Opportunity Amount remains 251.00. |
+| 17. Set Opportunity Negotiation/Review, then Closed Won; save and verify each stage. | Stage Negotiation/Review → Closed Won; configured Won probability and SF_TIME_ZONE. | Closed Won, configured 100% probability, user-timezone current Close Date and amount 251.00. |
+| 18. Create a 24-month Contract under the same Account; Save and verify Details. | Owned Account ID; UTC current Start Date; term 24; unique marker; Unicode default terms. | Draft; same Account; term 24; owned marker, dates and Sales creator verified. |
+| 19. Edit Special Terms; Save; Activate and confirm. | Special Terms: Agreed delivery in 30 days; service SLA 8 hours. | Activated; term 24; exact agreed terms; activating Sales user and nonempty activation date. |
+| 20. Clear state; open fresh Service JWT session and verify profile. | Service role; preauthorized client/key, values withheld. | Visible profile is E2E Service Manager. |
+| 21. Read the same activated Contract as Service. | Owned Contract ID; expected 24 months and agreed terms. | Same Account, Activated, term 24, exact terms and marker; Edit/Delete absent. |
+| 22. Finally restore Sales with fresh JWT and verify profile. | Sales role; preauthorized client/key, values withheld. | E2E Sales Manager is active; UI cleanup will run with Sales permissions. |
+| 23. Reread Opportunity, Quote and Contract through fresh Details. | The exact owned Opportunity, Quote, Contract and Account IDs. | Won/100%/251.00; Quote Accepted/not syncing/251.00; Contract Activated/24 months/exact terms. |
+| 24. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+
+## SF-E2E-003
+
+**Objective:** Recover a lost sale and replace a denied Quote
+
+**Source:** [tests/integration.e2e.ts](../tests/integration.e2e.ts)
+
+**Role:** E2E Sales Manager → E2E Service Manager → E2E Sales Manager
+
+**Preconditions:** JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.
+
+**Test data:** Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. Lost → Qualification → Proposal → Negotiation; Denied and revised Accepted Quotes; charges 12.34+5.67=18.01; Won; revised 24-month Activated Contract; Service handoff.
+
+| Action | Data | Expected output |
+| --- | --- | --- |
+| 1. Restore the saved Lightning session for the assigned role. | Saved role session: E2E Sales Manager → E2E Service Manager → E2E Sales Manager; configured JWT client and private key (values withheld). | JWT setup has verified the active user through UI; the user is not an administrator. |
+| 2. Open New Account and enter a unique Account Name. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | Save and editable Account Name are visible; the entered value reads back correctly. |
+| 3. Save the Account and open its record page. | Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save. | The form closes; the URL contains the Account ID; the exact Account name appears as a heading. |
+| 4. Open New Opportunity with the owned Account prefilled; enter name, Close Date +30 days, Prospecting, 12345.67 USD and description. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Account Name and entered values are visible; Stage shows Prospecting. |
+| 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
+| 6. Set Opportunity Closed Lost; Save and verify Details. | Owned Opportunity ID; Closed Lost; configured Lost probability. | Closed Lost; Probability 0%; original owned fields persist. |
+| 7. Set Opportunity Stage = Qualification; Save and verify fresh Details. | Owned Opportunity ID; target Qualification. | Stage Qualification; original fields, links and Sales ownership persist. |
+| 8. Set Opportunity Stage = Proposal/Price Quote; Save and verify fresh Details. | Owned Opportunity ID; target Proposal/Price Quote. | Stage Proposal/Price Quote; original fields, links and Sales ownership persist. |
+| 9. Set Opportunity Stage = Negotiation/Review; Save and verify fresh Details. | Owned Opportunity ID; target Negotiation/Review. | Stage Negotiation/Review; original fields, links and Sales ownership persist. |
+| 10. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 11. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 12. Set the initial proposal Quote to Denied; Save and verify. | Unique DeniedProposal name/ID; Status Denied. | Exact initial Quote is Denied and remains linked to the owned Opportunity. |
+| 13. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
+| 14. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
+| 15. Edit the revised Quote charges and select Presented; Save and verify. | RevisedProposal ID; Tax 12.34; shipping 5.67; Status Presented. | Presented; Tax 12.34; ShippingHandling 5.67; GrandTotal 18.01. |
+| 16. Set revised Quote Accepted; Save; verify Details and exact Opportunity link. | Revised Quote ID; Accepted; GrandTotal 18.01 USD. | Accepted; same owned Account/Opportunity; total 18.01. |
+| 17. Reread the initial Quote. | Initial Quote ID; expected Denied and original owned Opportunity. | Initial proposal remains Denied; changing the alternative did not change it. |
+| 18. Edit Opportunity Amount to the accepted total; Save and verify. | Amount 18.01 USD; owned Opportunity ID. | Amount 18.01; other fields and Sales ownership correct. |
+| 19. Set Opportunity Closed Won; Save and verify. | Closed Won; configured Won probability; SF_TIME_ZONE. | Won, configured 100%, user-timezone current Close Date and amount 18.01. |
+| 20. Complete New Contract with the owned Account, UTC current Start Date, 12 months, unique Description marker and Unicode Special Terms. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Save and completed fields are visible; the owned Account is prefilled. |
+| 21. Save the Contract and open fresh Details. | Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms. | Draft; correct Account, Start Date, 12 months, Description and Special Terms; Created By is E2E Sales Manager; Contract Number enters the cleanup journal. |
+| 22. Edit Contract term and Special Terms; Save and verify Draft. | Term 24; unique E2E-TA-RevisedServiceTerms value. | Term 24; exact new terms; Draft and same Account. |
+| 23. Activate Contract and confirm; read Details. | Owned Contract ID; same Account; term 24 and revised terms. | Activated; term 24; exact revised terms; activating Sales user/date. |
+| 24. Clear state; open fresh Service JWT session and verify profile. | Service role; preauthorized client/key, values withheld. | Visible profile E2E Service Manager. |
+| 25. Read the same Contract as Service. | Owned Contract ID, Account name, revised terms and marker. | Activated; term 24; exact Account, terms and marker; Edit/Delete absent. |
+| 26. Finally restore Sales with fresh JWT and verify profile. | Sales role; preauthorized client/key, values withheld. | Sales Manager active; cleanup uses Sales permissions. |
+| 27. Reread the Opportunity and both Quotes. | Owned Opportunity and distinct initial/revised Quote IDs. | Opportunity Won/100%/18.01; revised Quote Accepted/18.01; initial Quote Denied; exact relationships persist. |
+| 28. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |

@@ -19,13 +19,13 @@
 [![Salesforce CLI](https://img.shields.io/badge/Salesforce_CLI-2.152.14-00a1e0?logo=salesforce&logoColor=white)](docs/AUTH_SETUP.md)
 [![UI tests](https://img.shields.io/badge/Business_tests-100%25_UI-success)](docs/TEST_DESIGN.md)
 
-Automated regression with [TesterArmy e2e](https://tester.army/e2e), TypeScript and Chromium. **All 36 standard regression cases are UI tests:** fixtures, business actions, persisted-data assertions and cleanup operate through Salesforce Lightning. Authentication and one-time administrative provisioning are separate infrastructure tasks.
+Automated regression with [TesterArmy e2e](https://tester.army/e2e), TypeScript and Chromium. **All 50 standard regression cases are UI tests:** fixtures, business actions, persisted-data assertions and cleanup operate through Salesforce Lightning. Authentication and one-time administrative provisioning are separate infrastructure tasks.
 
 **E2E Sales Manager** creates and owns Opportunities. Every Opportunity fixture verifies Owner and Created By through UI. **E2E Service Manager** has a separate session for permission checks, Case creation/editing and the read-only Contract handoff. Administrators are excluded from business Opportunity creation.
 
 Allure includes executed steps, expected test designs and **detailed failure logs, automatic PNG screenshots and the exact failure URL**. GitHub Actions runs the suite and publishes the completed report to **[Netlify](https://sf-e2e-tst-allure-ak91hu.netlify.app)**. [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Test design wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-**Latest verified full GitHub run: 38/38 passed**, [run 37103571188](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37103571188), 2026-10-03, one worker, zero retries and no remaining owned records. This run precedes the English/latest-component update; the next full run will verify that update. [Verification evidence](docs/VERIFICATION.md) distinguishes completed runs from pending work.
+**Latest verified full GitHub run: 38/38 passed**, [run 37103571188](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37103571188), 2026-10-03, one worker, zero retries and no remaining owned records. This verified run precedes the English/latest-component update and the expansion to 52 results. Subsequent runs validate those changes separately. [Verification evidence](docs/VERIFICATION.md) distinguishes completed runs from pending work.
 
 ## Documentation
 
@@ -33,7 +33,7 @@ All supporting Markdown documents are organized under `docs/`; this root README 
 
 | Document | Contents |
 | --- | --- |
-| [Test designs](docs/TEST_DESIGN.md) | **41 designs, 321 explicit steps**, with Action / Data / Expected output, role, preconditions, fixture preparation and cleanup. |
+| [Test designs](docs/TEST_DESIGN.md) | **55 designs, 475 explicit steps**, with Action / Data / Expected output, role, preconditions, fixture preparation and cleanup. |
 | [Wiki page sources](docs/wiki/Home.md) | One generated page per case, plus the wiki index and sidebar. |
 | [POM review](docs/POM_REVIEW.md) | Page Object Model structure, review findings and fixes. |
 | [Authentication setup](docs/AUTH_SETUP.md) | JWT, personas, permissions and email-code-free runs. |
@@ -105,15 +105,15 @@ Local `.env` values never overwrite existing process/CI variables. The current c
 | IDs | Count | Behavior |
 | --- | ---: | --- |
 | SF-AUTH-001 | 1 | Authenticated Opportunity list and New button. |
-| SF-OPP-001–013 | 13 | Full sales lifecycle; required name/date/Stage; Unicode editing; cancel create/edit/delete; Closed Lost and reopening; deletion; 0 and 0.01 USD. |
-| SF-CON-001–009 | 9 | Draft, Account/start date/term; required fields; Unicode terms and 24 months; cancel; deletion; activation, activating user and date. |
-| SF-QUO-001–009 | 9 | Draft, relationships and expiry; required name; cancel; Unicode/tax/shipping/Grand Total; Presented → Accepted; deletion; owned catalogue with 2 × 125.50 = 251.00 USD; Start/Stop Sync and Opportunity Amount. |
+| SF-OPP-001–017 | 17 | Full sales lifecycle; required name/date/Stage; Unicode editing; cancel create/edit/delete; Closed Lost and reopening; deletion; 0 and 0.01 USD; past dates; reverse stage changes; grouped million-dollar amounts and edit-to-zero. |
+| SF-CON-001–013 | 13 | Draft, Account/start date/term; required fields; Unicode terms and 24 months; cancel; deletion; activation, activating user and date; edited Start Date; one-month term; cancel activation/deletion. |
+| SF-QUO-001–013 | 13 | Draft, relationships and expiry; required name; cancel; Unicode/tax/shipping/Grand Total; Presented → Accepted; deletion; owned catalogue with 2 × 125.50 = 251.00 USD; Start/Stop Sync and Opportunity Amount; Denied; past expiry; reset charges to zero; two isolated Quotes. |
 | SF-ROLE-001–003 | 3 | Sales ownership/creator; Service creation denied in list and direct New UI; Service Case New → Working. |
-| SF-E2E-001 | 1 | Sales Opportunity → Accepted Quote → Closed Won → Activated Contract → Service read-only handoff → return to Sales. |
+| SF-E2E-001–003 | 3 | Standard handoff plus two large workflows: complete product sale with pricing/sync/24-month Contract, and lost-deal recovery with replacement Quote, revised charges/terms and Service handoff. |
 | SF-AUTH, SF-AUTH-SERVICE | +2 setups | Role-specific JWT login, visible profile verification and saved browser session. |
 | SF-AI-001–003 | +3 optional | Natural-language Opportunity/Contract/Quote UI edits, agent assertion and structured extraction with deterministic UI assertions. |
 
-The normal full run selects **36 cases + 2 setups = 38 results**. The 41 designs also cover optional AI cases. Filtered runs export only selected cases and dependencies to Allure.
+The normal full run selects **50 cases + 2 setups = 52 results**. The 55 designs also cover optional AI cases. Filtered runs export only selected cases and dependencies to Allure.
 
 **Data model:** standard Salesforce Quote. Contract relates to the workflow through the **Account** in this org; Opportunity.ContractId is absent. The integration verifies the same Account and exact Opportunity link.
 
@@ -126,7 +126,8 @@ The normal full run selects **36 cases + 2 setups = 38 results**. The 41 designs
 | `npm run test:list` | Collect cases and setup dependencies without opening a browser. |
 | `npm run test:regression` | Complete standard UI regression. |
 | `npm run test:opportunity` / `test:contract` / `test:quote` | Object-specific regression. |
-| `npm run test:roles` / `test:integration` | Role permissions / complete handoff. |
+| `npm run test:roles` / `test:integration` | Role permissions / all three complete workflows. |
+| `npm run test:monolithic` | The two large product-sale and lost-sale-recovery workflows. |
 | `npm run test:auth` / `test:smoke` | Authentication / smoke selection. |
 | `npm run test:e2e -- --grep SF-OPP-006` | Select by case ID or regex. |
 | `npm run test:headed` | Visible test browser. |
@@ -136,7 +137,7 @@ The normal full run selects **36 cases + 2 setups = 38 results**. The 41 designs
 | `npm run allure:deploy` | Publish current static HTML to Netlify production. |
 | `npm run versions:check` | Read-only latest stable component audit against primary registries. |
 | `npm run design:generate` / `design:check` | Generate / verify consolidated step designs. |
-| `npm run wiki:generate` / `wiki:check` | Generate / verify 43 wiki pages. |
+| `npm run wiki:generate` / `wiki:check` | Generate / verify 57 wiki pages. |
 
 One worker, **zero retries**, 10-minute case timeout, 45-second action timeout, 30-second assertions and 5-minute cleanup timeout. Run only one live suite against the org at a time; GitHub concurrency queues CI runs. Each test has isolated browser state and owned data.
 

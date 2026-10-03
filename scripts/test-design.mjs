@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { testDesigns } from '../docs/test-design.ts';
+import { testDesigns, designTotals } from '../docs/test-design.ts';
 import { spawnSync } from 'node:child_process';
 
-assert.equal(testDesigns.length, 41, '36 regression cases + 3 optional AI cases + 2 session setups.');
+assert.ok(testDesigns.length > 0, 'At least one executable design is required.');
 assert.equal(new Set(testDesigns.map(item => item.id)).size, testDesigns.length);
 for (const item of testDesigns) {
   assert.ok(existsSync(item.file), `Missing source: ${item.file}`);
@@ -11,7 +11,7 @@ for (const item of testDesigns) {
 }
 const cell = value => value.replaceAll('|', '\\|').replaceAll('\n', '<br>');
 const text = '# Salesforce UI step-level test designs\n\n' +
-  '41 designs: 36 default regression UI cases, 3 optional AI UI cases and 2 authentication setups. Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands its shared preparation and cleanup steps.\n\n' +
+  `${designTotals.designs} designs: ${designTotals.regression} default regression UI cases, ${designTotals.optionalAI} optional AI UI cases and ${designTotals.setups} authentication setups. Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands its shared preparation and cleanup steps.\n\n` +
   'Salesforce business data is created, verified and cleaned up exclusively through UI. Authentication endpoints and one-time administrative provisioning are configuration infrastructure. Each case owns isolated data; administrators never create Opportunities. Visible fields, controls, record URLs and list results prove each step. There are no fixed sleeps, API oracles or automatic test retries.\n\n' +
   'Dates are generated at runtime. `futureDate` uses UTC; the automatic Salesforce Closed Won date follows the user timezone (`SF_TIME_ZONE`, default Europe/Budapest). Environment variables configure Stage names and Won/Lost percentages for other sales processes; these designs describe the configured Developer Edition defaults. Optional AI cases require model access and quota.\n\n' +
   'Editable source: [test-design.ts](test-design.ts). Generate with `npm run design:generate`; verify with `npm run design:check`. Allure displays these same expected steps in each matched case description.\n\n' +

@@ -21,6 +21,10 @@
 - [SF-OPP-011](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-011)
 - [SF-OPP-012](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-012)
 - [SF-OPP-013](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-013)
+- [SF-OPP-014](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-014)
+- [SF-OPP-015](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-015)
+- [SF-OPP-016](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-016)
+- [SF-OPP-017](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-017)
 
 **Contract**
 
@@ -33,6 +37,10 @@
 - [SF-CON-007](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-007)
 - [SF-CON-008](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-008)
 - [SF-CON-009](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-009)
+- [SF-CON-010](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-010)
+- [SF-CON-011](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-011)
+- [SF-CON-012](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-012)
+- [SF-CON-013](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-013)
 
 **Quote**
 
@@ -45,6 +53,10 @@
 - [SF-QUO-007](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-007)
 - [SF-QUO-008](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-008)
 - [SF-QUO-009](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-009)
+- [SF-QUO-010](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-010)
+- [SF-QUO-011](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-011)
+- [SF-QUO-012](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-012)
+- [SF-QUO-013](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-013)
 
 **Roles and Service**
 
@@ -55,6 +67,8 @@
 **Sales to Service**
 
 - [SF-E2E-001](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-001)
+- [SF-E2E-002](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-002)
+- [SF-E2E-003](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-003)
 
 **Optional AI**
 

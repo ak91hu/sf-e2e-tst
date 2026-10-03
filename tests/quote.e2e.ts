@@ -59,4 +59,33 @@ test.describe('Salesforce Quote regression', { session: 'salesforce', tags: ['re
     expect(await sales.read(quote.record)).toMatchObject({ Subtotal: total, TotalPrice: total, GrandTotal: total });
     await sales.opportunities.assert({ ...quote.deal, amount: total });
   });
+  test('SF-QUO-010 | Deny a Quote without changing its Opportunity', { tags: ['lifecycle'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'DeniedQuote'); const quote = await sales.quotes.create(deal);
+    await sales.form('Quote', {}, quote.record.id); await sales.choose('Status', 'Denied'); await sales.save();
+    expect(await sales.read(quote.record)).toMatchObject({ Name: quote.record.name, Status: 'Denied', OpportunityName: deal.name });
+    await sales.quotes.assertOpportunityLink(deal); await sales.opportunities.assert(deal);
+  });
+  test('SF-QUO-011 | Persist a past Quote expiration date', { tags: ['date', 'boundary'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'ExpiredQuote'); const quote = await sales.quotes.create(deal); const expires = futureDate(-1);
+    await sales.form('Quote', {}, quote.record.id); await sales.date('Expiration Date', expires); await sales.save();
+    expect(await sales.read(quote.record)).toMatchObject({ Name: quote.record.name, Status: 'Draft', ExpirationDate: expires, OpportunityName: deal.name });
+    await sales.quotes.assertOpportunityLink(deal);
+  });
+  test('SF-QUO-012 | Reset tax and shipping to zero and recalculate total', { tags: ['amount', 'edit', 'boundary'] }, async ({ sales }) => {
+    const quote = await sales.quotes.create(await sales.opportunities.create(await sales.accounts.create(), 'QuoteZeroCosts'));
+    for (const [tax, shipping, total] of [[12.34, 5.67, 18.01], [0, 0, 0]]) {
+      await sales.form('Quote', {}, quote.record.id); await sales.fill('Tax', tax); await sales.fill('Shipping and Handling', shipping); await sales.save();
+      expect(await sales.read(quote.record)).toMatchObject({ Name: quote.record.name, Tax: tax, ShippingHandling: shipping, GrandTotal: total, Status: 'Draft' });
+    }
+  });
+  test('SF-QUO-013 | Keep two Quotes isolated under the same Opportunity', { tags: ['lifecycle', 'relationships'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'AlternativeQuotes');
+    const first = await sales.quotes.create(deal, 'PrimaryQuote'); const second = await sales.quotes.create(deal, 'AlternativeQuote');
+    await sales.form('Quote', {}, first.record.id); await sales.choose('Status', 'Denied'); await sales.save();
+    expect(await sales.read(first.record)).toMatchObject({ Name: first.record.name, Status: 'Denied', OpportunityName: deal.name }); await sales.quotes.assertOpportunityLink(deal);
+    expect(await sales.read(second.record)).toMatchObject({ Name: second.record.name, Status: 'Draft', OpportunityName: deal.name }); await sales.quotes.assertOpportunityLink(deal);
+    await sales.form('Quote', {}, second.record.id); await sales.choose('Status', 'Presented'); await sales.save();
+    expect(await sales.read(second.record)).toMatchObject({ Name: second.record.name, Status: 'Presented', OpportunityName: deal.name });
+    expect(await sales.read(first.record)).toMatchObject({ Name: first.record.name, Status: 'Denied', OpportunityName: deal.name }); await sales.opportunities.assert(deal);
+  });
 });

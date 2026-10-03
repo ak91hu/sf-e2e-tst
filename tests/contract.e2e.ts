@@ -42,4 +42,22 @@ test.describe('Salesforce Contract regression', { session: 'salesforce', tags: [
     await sales.form('Contract', { AccountId: account.id }); await sales.date('Contract Start Date', futureDate(0));
     await sales.fill('Contract Term (months)', 12); await sales.fill('Description', record.marker); await sales.cancel(); await sales.assertAbsent(record);
   });
+  test('SF-CON-010 | Edit Start Date while preserving the owned Account and term', { tags: ['date', 'edit'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create()); const startDate = futureDate(7);
+    await sales.form('Contract', {}, contract.record.id); await sales.date('Contract Start Date', startDate); await sales.save();
+    expect(await sales.read(contract.record)).toMatchObject({ StartDate: startDate, ContractTerm: 12, AccountName: contract.account.name, Status: 'Draft', Description: contract.record.marker });
+  });
+  test('SF-CON-011 | Persist a one-month Draft Contract', { tags: ['boundary'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create(), 1);
+    expect(await sales.read(contract.record)).toMatchObject({ ContractTerm: 1, Status: 'Draft', AccountName: contract.account.name });
+  });
+  test('SF-CON-012 | Cancel Contract activation and retain Draft', { tags: ['cancel', 'lifecycle'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create());
+    expect(await sales.contracts.cancelActivation(contract.record)).toMatchObject({ Status: 'Draft', ContractTerm: 12, AccountName: contract.account.name });
+  });
+  test('SF-CON-013 | Cancel Draft Contract deletion', { tags: ['cancel', 'delete'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create());
+    await sales.deleteDialog(contract.record); await sales.cancel();
+    expect(await sales.read(contract.record)).toMatchObject({ Status: 'Draft', ContractTerm: 12, AccountName: contract.account.name, Description: contract.record.marker });
+  });
 });

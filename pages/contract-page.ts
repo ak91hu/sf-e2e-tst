@@ -15,8 +15,16 @@ export class ContractPage {
     const actual = await this.ui.read(saved); expect(actual).toMatchObject({ AccountName: account.name, StartDate: startDate, ContractTerm: term, Status: 'Draft', Description: record.marker, SpecialTerms: specialTerms });
     expect(String(actual['Created By']).split('\n')[0]).toBe(environment.salesName); return { record: saved, account, startDate, term, specialTerms };
   }
+  private async activationDialog(record: SavedRecord) {
+    await this.ui.open(record); await this.ui.screen.getByRole('button', 'Show more actions', { visible: true }).tap(); await this.ui.screen.getByRole('menuitem', 'Activate', { visible: true }).tap();
+    await expect(this.ui.confirmation('Activate').getByRole('button', 'Activate')).toBeVisible();
+  }
+  async cancelActivation(record: SavedRecord) {
+    await this.activationDialog(record); await this.ui.cancel();
+    const actual = await this.ui.read(record); expect(actual.Status).toBe('Draft'); return actual;
+  }
   async activate(record: SavedRecord) {
-    await this.ui.open(record); await this.ui.screen.getByRole('button', 'Show more actions', { visible: true }).tap(); await this.ui.screen.getByRole('menuitem', 'Activate', { visible: true }).tap(); await this.ui.confirmation('Activate').getByRole('button', 'Activate').tap(); await expect(this.ui.confirmation('Activate')).not.toBeVisible();
+    await this.activationDialog(record); await this.ui.confirmation('Activate').getByRole('button', 'Activate').tap(); await expect(this.ui.confirmation('Activate')).not.toBeVisible();
     const actual = await this.ui.read(record); expect(actual.Status).toBe('Activated'); expect(String(actual.ActivatedBy).split('\n')[0]).toBe(environment.salesName); expect(actual.ActivatedDate).toBeTruthy(); return actual;
   }
 

@@ -60,4 +60,25 @@ test.describe('Salesforce Opportunity regression', { session: 'salesforce', tags
       const account = await sales.accounts.create(); const deal = await sales.opportunities.create(account, 'Amount', { amount }); await sales.opportunities.assert(deal);
     });
   }
+  test('SF-OPP-014 | Persist a past Close Date on an open Opportunity', { tags: ['date', 'boundary'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'PastCloseDate', { closeDate: futureDate(-7) });
+    await sales.opportunities.assert(deal);
+  });
+  test('SF-OPP-015 | Move an open Opportunity backwards through stages', { tags: ['lifecycle'] }, async ({ sales }) => {
+    let deal = await sales.opportunities.create(await sales.accounts.create(), 'BackwardStages');
+    for (const stage of [environment.stages.negotiation, environment.stages.proposal, environment.stages.qualified]) deal = await sales.opportunities.changeStage(deal, stage);
+    const actual = await sales.opportunities.assert(deal);
+    expect(actual.Probability).toBeGreaterThan(environment.lostProbability); expect(actual.Probability).toBeLessThan(environment.wonProbability);
+  });
+  test('SF-OPP-016 | Persist a seven-digit amount with cents', { tags: ['amount', 'boundary'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'LargeAmount', { amount: 1000000.99 });
+    await sales.opportunities.assert(deal);
+  });
+  test('SF-OPP-017 | Edit a grouped decimal amount back to zero', { tags: ['amount', 'edit', 'boundary'] }, async ({ sales }) => {
+    let deal = await sales.opportunities.create(await sales.accounts.create(), 'AmountRoundTrip');
+    for (const amount of [1000000.99, 0]) {
+      await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Amount', amount); await sales.save();
+      deal = { ...deal, amount }; await sales.opportunities.assert(deal);
+    }
+  });
 });

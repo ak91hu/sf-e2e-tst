@@ -186,4 +186,97 @@ for (const [id, persona, session] of [['SF-AUTH', sales, 'salesforce'], ['SF-AUT
     [`session.save('${session}').`, `Session name: ${session}; authenticated browser storage.`, 'Authenticated session can be saved; no business data changed.'],
   ],
 });
+add('SF-OPP-014', 'Persist a past Close Date on an open Opportunity', 'opportunity', `${draftData} Close Date = UTC today -7 days; Prospecting; Amount = 12345.67 USD.`, [
+  ['Create an Opportunity under the owned Account with Close Date seven days in the past; Save.', 'The dialog closes; the owned Opportunity ID is known.', 'Generated Opportunity name; owned Account ID; UTC date -7 days; Prospecting; 12345.67 USD; default description.'],
+  ['Open fresh Details and verify the complete Opportunity.', 'The exact past date persists; all fields, Account link and Sales Owner/Created By are correct.', 'Owned Opportunity ID; date -7 days; original Amount 12345.67 USD and Prospecting.'],
+], sales, 'account');
+add('SF-OPP-015', 'Move an open Opportunity backwards through stages', 'opportunity', `${draftData} Negotiation/Review → Proposal/Price Quote → Qualification.`, [
+  ...['Negotiation/Review', 'Proposal/Price Quote', 'Qualification'].map(stage => [`Edit Stage = ${stage}; Save and open fresh Details.`, `Stage = ${stage}; original fields, Account relationship and Sales ownership persist.`, `Owned Opportunity ID; target Stage ${stage}; original Amount 12345.67 USD.`] as ScenarioStep),
+  ['Verify final Qualification probability.', 'Probability remains strictly between the configured Lost and Won probabilities.', 'Qualification; configured Lost 0% and Won 100% boundaries.'],
+], sales, 'opportunity');
+add('SF-OPP-016', 'Persist a seven-digit amount with cents', 'opportunity', `${draftData} Amount = 1000000.99 USD.`, [
+  ['Create the Opportunity with a seven-digit amount and cents; Save.', 'The form closes; the owned record URL is visible.', 'Amount 1000000.99 USD; Prospecting; UTC date +30 days; owned Account ID; generated name.'],
+  ['Open fresh Details and verify all Opportunity fields.', 'Amount is exactly 1000000.99 to two decimal places; other fields, links and Sales ownership are correct.', 'Owned Opportunity ID; expected visible USD amount $1,000,000.99.'],
+], sales, 'account');
+add('SF-OPP-017', 'Edit a grouped decimal amount back to zero', 'opportunity', `${draftData} Amount 12345.67 → 1000000.99 → 0 USD.`, [
+  ['Edit Amount to 1000000.99; Save and verify fresh Details.', 'The grouped decimal amount persists; other Opportunity fields and relationships are unchanged.', 'Amount 1000000.99 USD; original name/date/Stage/description/Account.'],
+  ['Edit Amount to zero; Save and verify fresh Details.', 'Amount is 0.00 USD rather than empty; other fields and Sales ownership persist.', 'Amount 0 USD; original name/date/Stage/description/Account.'],
+], sales, 'opportunity');
+add('SF-CON-010', 'Edit Contract Start Date', 'contract', `${draftData} Start Date = UTC today +7 days; term 12.`, [
+  ['Edit Contract Start Date; Save.', 'The dialog closes.', 'Owned Draft Contract ID; UTC date +7 days.'],
+  ['Open fresh Details.', 'New Start Date, 12 months, owned Account, Draft status and exact Description marker persist.', 'Expected date +7 days; term 12; owned Account name and Description marker.'],
+], sales, 'contract');
+add('SF-CON-011', 'Persist a one-month Draft Contract', 'contract', `${draftData} Term = 1 month; UTC current Start Date.`, [
+  ['Create Contract under the owned Account with one-month term; Save.', 'The form closes; owned Contract ID and Contract Number are known.', 'Owned Account ID; UTC current Start Date; term 1; unique Description marker and Unicode Special Terms.'],
+  ['Open fresh Details.', 'Term is 1; Draft status and owned Account persist; the creation helper also verifies fields and Sales creator.', 'ContractTerm 1; Status Draft; owned Account name.'],
+], sales, 'account');
+add('SF-CON-012', 'Cancel Contract activation', 'contract', `${draftData} Draft Contract; term 12.`, [
+  ['Open Show more actions → Activate; Cancel the confirmation.', 'The activation dialog closes; the Contract remains Draft.', 'Owned Draft Contract ID; Activate confirmation; Cancel button.'],
+  ['Open fresh Details.', 'Draft, 12 months and owned Account persist; the Description marker identifies the same record.', 'Status Draft; ContractTerm 12; owned Account name and marker.'],
+], sales, 'contract');
+add('SF-CON-013', 'Cancel Draft Contract deletion', 'contract', draftData, [
+  ['Open the Contract Delete dialog.', 'The Delete confirmation is visible.', 'Owned Draft Contract ID and Contract Number.'],
+  ['Cancel and open fresh Details.', 'Draft, 12 months, owned Account and exact Description marker persist.', 'Cancel; expected Status Draft, term 12, owned Account name and marker.'],
+], sales, 'contract');
+add('SF-QUO-010', 'Deny a Quote without changing its Opportunity', 'quote', `${draftData} Status = Denied; Opportunity remains Prospecting.`, [
+  ['Edit Quote Status to Denied; Save.', 'The dialog closes.', 'Owned Quote ID; Status Denied.'],
+  ['Verify fresh Quote Details, exact Opportunity link and full Opportunity Details.', 'Quote is Denied with the same name/Opportunity; original Opportunity fields and Sales ownership persist.', 'Owned Quote name and ID; owned Opportunity ID; original Stage Prospecting and Amount 12345.67 USD.'],
+], sales, 'quote');
+add('SF-QUO-011', 'Persist a past Quote expiration date', 'quote', `${draftData} Expiration Date = UTC today -1 day.`, [
+  ['Edit Expiration Date to yesterday; Save.', 'The dialog closes.', 'Owned Draft Quote ID; UTC date -1 day.'],
+  ['Open fresh Details and verify the exact Opportunity link.', 'Exact past expiry, original Quote name, Draft status and owned Opportunity persist.', 'Expected date -1 day; Status Draft; owned Quote name and Opportunity ID.'],
+], sales, 'quote');
+add('SF-QUO-012', 'Reset Quote tax and shipping to zero', 'quote', `${draftData} Tax/Shipping 12.34/5.67 → 0/0; GrandTotal 18.01 → 0.`, [
+  ['Edit Tax and Shipping and Handling; Save and open fresh Details.', 'Tax = 12.34; ShippingHandling = 5.67; GrandTotal = 18.01; name and Draft persist.', 'Tax 12.34 USD; shipping 5.67 USD; Quote has no product lines.'],
+  ['Edit both charges to zero; Save and open fresh Details.', 'Tax, ShippingHandling and GrandTotal are all zero; original name and Draft status persist.', 'Tax 0 USD; shipping 0 USD; GrandTotal 0 USD.'],
+], sales, 'quote');
+add('SF-QUO-013', 'Isolate two Quotes under one Opportunity', 'quote', `${draftData} Primary Quote Denied; Alternative Quote Draft → Presented.`, [
+  ...quote, ...quote,
+  ['Edit the first Quote to Denied; Save; read both Quotes and exact Opportunity links.', 'First Quote is Denied; second remains Draft; each exact name/ID points to the same owned Opportunity.', 'Two distinct generated Quote names/IDs; same owned Opportunity ID; first Status Denied, second Draft.'],
+  ['Edit the second Quote to Presented; Save; reread both and the complete Opportunity.', 'Second Quote is Presented; first remains Denied; original Opportunity data and Sales ownership persist.', 'Second Status Presented; first Denied; original Opportunity Amount 12345.67 USD and Stage Prospecting.'],
+], sales, 'opportunity');
+add('SF-E2E-002', 'Complete product sale through Contract and Service handoff', 'integration', `${draftData} Product 125.50 USD ×2; Quote Presented → Accepted; sync on/off; Opportunity Won; Contract 24 months; Service read-only.`, [
+  ['Create an owned active Product and standard price through UI.', 'The Product and price saves complete; owned Product ID is known.', 'Unique Product name/code; Active; unit price 125.50 USD.'],
+  ['Create an owned active custom Price Book and add that exact Product.', 'Price Book Entries (1); exact Product row and 125.50 USD visible.', 'Owned Price Book name/ID; owned Product ID; Active.'],
+  ...account, ...opportunity,
+  ...['Qualification', 'Proposal/Price Quote'].map(stage => [`Set Opportunity Stage = ${stage}; Save and verify fresh Details.`, 'Stage, fields, relationships and Sales ownership are correct.', `Owned Opportunity ID; Stage ${stage}.`] as ScenarioStep),
+  ...quote,
+  ['Add the owned Product to the Quote with quantity two; Save.', 'Line quantity 2.00; Subtotal, TotalPrice and GrandTotal = 251.00; exact Product link visible.', 'Owned Product/Price Book IDs; unit price 125.50; quantity 2.'],
+  ...['Presented', 'Accepted'].map(status => [`Set Quote Status = ${status}; Save; verify Details and exact Opportunity link.`, `Status ${status}; owned name/Account/Opportunity; all totals 251.00.`, `Owned Quote ID; Status ${status}; total 251.00 USD.`] as ScenarioStep),
+  ['Start Sync and confirm Continue; read the Opportunity.', 'Syncing true; Opportunity Amount = 251.00; other fields and Sales ownership persist.', 'Accepted Quote ID; owned Opportunity ID; expected amount 251.00 USD.'],
+  ['Stop Sync and confirm Continue; read the Opportunity.', 'Syncing false; Opportunity Amount remains 251.00.', 'Same Quote/Opportunity IDs; expected amount 251.00 USD.'],
+  ['Set Opportunity Negotiation/Review, then Closed Won; save and verify each stage.', 'Closed Won, configured 100% probability, user-timezone current Close Date and amount 251.00.', 'Stage Negotiation/Review → Closed Won; configured Won probability and SF_TIME_ZONE.'],
+  ['Create a 24-month Contract under the same Account; Save and verify Details.', 'Draft; same Account; term 24; owned marker, dates and Sales creator verified.', 'Owned Account ID; UTC current Start Date; term 24; unique marker; Unicode default terms.'],
+  ['Edit Special Terms; Save; Activate and confirm.', 'Activated; term 24; exact agreed terms; activating Sales user and nonempty activation date.', 'Special Terms: Agreed delivery in 30 days; service SLA 8 hours.'],
+  ['Clear state; open fresh Service JWT session and verify profile.', 'Visible profile is E2E Service Manager.', 'Service role; preauthorized client/key, values withheld.'],
+  ['Read the same activated Contract as Service.', 'Same Account, Activated, term 24, exact terms and marker; Edit/Delete absent.', 'Owned Contract ID; expected 24 months and agreed terms.'],
+  ['Finally restore Sales with fresh JWT and verify profile.', 'E2E Sales Manager is active; UI cleanup will run with Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
+  ['Reread Opportunity, Quote and Contract through fresh Details.', 'Won/100%/251.00; Quote Accepted/not syncing/251.00; Contract Activated/24 months/exact terms.', 'The exact owned Opportunity, Quote, Contract and Account IDs.'],
+], `${sales} → ${service} → ${sales}`);
+add('SF-E2E-003', 'Recover a lost sale and replace a denied Quote', 'integration', `${draftData} Lost → Qualification → Proposal → Negotiation; Denied and revised Accepted Quotes; charges 12.34+5.67=18.01; Won; revised 24-month Activated Contract; Service handoff.`, [
+  ['Set Opportunity Closed Lost; Save and verify Details.', 'Closed Lost; Probability 0%; original owned fields persist.', 'Owned Opportunity ID; Closed Lost; configured Lost probability.'],
+  ...['Qualification', 'Proposal/Price Quote', 'Negotiation/Review'].map(stage => [`Set Opportunity Stage = ${stage}; Save and verify fresh Details.`, `Stage ${stage}; original fields, links and Sales ownership persist.`, `Owned Opportunity ID; target ${stage}.`] as ScenarioStep),
+  ...quote,
+  ['Set the initial proposal Quote to Denied; Save and verify.', 'Exact initial Quote is Denied and remains linked to the owned Opportunity.', 'Unique DeniedProposal name/ID; Status Denied.'],
+  ...quote,
+  ['Edit the revised Quote charges and select Presented; Save and verify.', 'Presented; Tax 12.34; ShippingHandling 5.67; GrandTotal 18.01.', 'RevisedProposal ID; Tax 12.34; shipping 5.67; Status Presented.'],
+  ['Set revised Quote Accepted; Save; verify Details and exact Opportunity link.', 'Accepted; same owned Account/Opportunity; total 18.01.', 'Revised Quote ID; Accepted; GrandTotal 18.01 USD.'],
+  ['Reread the initial Quote.', 'Initial proposal remains Denied; changing the alternative did not change it.', 'Initial Quote ID; expected Denied and original owned Opportunity.'],
+  ['Edit Opportunity Amount to the accepted total; Save and verify.', 'Amount 18.01; other fields and Sales ownership correct.', 'Amount 18.01 USD; owned Opportunity ID.'],
+  ['Set Opportunity Closed Won; Save and verify.', 'Won, configured 100%, user-timezone current Close Date and amount 18.01.', 'Closed Won; configured Won probability; SF_TIME_ZONE.'],
+  ...contract,
+  ['Edit Contract term and Special Terms; Save and verify Draft.', 'Term 24; exact new terms; Draft and same Account.', 'Term 24; unique E2E-TA-RevisedServiceTerms value.'],
+  ['Activate Contract and confirm; read Details.', 'Activated; term 24; exact revised terms; activating Sales user/date.', 'Owned Contract ID; same Account; term 24 and revised terms.'],
+  ['Clear state; open fresh Service JWT session and verify profile.', 'Visible profile E2E Service Manager.', 'Service role; preauthorized client/key, values withheld.'],
+  ['Read the same Contract as Service.', 'Activated; term 24; exact Account, terms and marker; Edit/Delete absent.', 'Owned Contract ID, Account name, revised terms and marker.'],
+  ['Finally restore Sales with fresh JWT and verify profile.', 'Sales Manager active; cleanup uses Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
+  ['Reread the Opportunity and both Quotes.', 'Opportunity Won/100%/18.01; revised Quote Accepted/18.01; initial Quote Denied; exact relationships persist.', 'Owned Opportunity and distinct initial/revised Quote IDs.'],
+], `${sales} → ${service} → ${sales}`, 'opportunity');
 export const testDesigns: readonly TestDesign[] = cases;
+export const designTotals = {
+  designs: cases.length,
+  steps: cases.reduce((sum, item) => sum + item.steps.length, 0),
+  regression: cases.filter(item => item.file !== 'tests/auth.setup.e2e.ts' && !item.id.startsWith('SF-AI-')).length,
+  optionalAI: cases.filter(item => item.id.startsWith('SF-AI-')).length,
+  setups: cases.filter(item => item.file === 'tests/auth.setup.e2e.ts').length,
+};

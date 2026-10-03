@@ -29,6 +29,7 @@
     "test:quote": "node scripts/e2e.mjs run --tag quote",
     "test:roles": "node scripts/e2e.mjs run --tag roles",
     "test:integration": "node scripts/e2e.mjs run --tag integration",
+    "test:monolithic": "node scripts/e2e.mjs run --tag monolithic",
     "test:ai": "node scripts/e2e.mjs run --config e2e.agent.config.ts --tag ai",
     "test:headed": "node scripts/e2e.mjs run --headed",
     "test:list": "node scripts/e2e.mjs list",

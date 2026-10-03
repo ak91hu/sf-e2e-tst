@@ -19,7 +19,7 @@ Date: **2026-10-03**. Target: `orgfarm-80a620fbaf-dev-ed`. Business fixture crea
 
 Allure contains the same 38 selected results, source exit 0, matched designs and complete attempt cleanup. All **34 owned-record journals** show every record deleted: **zero remaining records**. The public Netlify run manifest matches this execution. Downloaded proof: `.validation/github-actions-37103571188/salesforce-regression-37103571188-1`; automated verification: `.validation/verified-github-run.json`.
 
-This completed run uses the previous package pins and test-language version. The English/latest-component update must receive its own full live CI verification before being claimed as fully validated.
+This completed run uses the previous package pins and test-language version. The English/latest-component update and the expanded 52-result suite must receive their own full live CI verification before being claimed as fully validated.
 
 ## English/latest-component update checks
 
@@ -32,10 +32,14 @@ The version audit on 2026-10-03 reports **19/19 current stable direct components
 | Latest e2e/web compatibility | Auth/maintenance/ShadowRoot/numeric synthetic UI harness **5 passed**, `.validation/auth-harness/1791010918185/report.json`. |
 | Failure evidence with latest components | Two intentional failed assertions, wrapper exit 0; detailed logs, exact URLs, valid automatic PNGs and OTP/checksum/SID/contentDoor redaction verified. `.validation/allure-failure-harness/1791011020687/report.json`. |
 | POM boundary | Seven business source files contain no direct locators, DOM evaluation, business fetch or fixed sleep. |
-| Designs | **41 designs, 321 steps**, matching executable normal/AI cases and setup IDs. Per-step Action / Data / Expected output. |
-| Wiki | **43 pages** generated and published as ak91hu; 41 designs plus Home/sidebar. [Live wiki](https://github.com/ak91hu/sf-e2e-tst/wiki). |
+| Designs | **55 designs, 475 steps**, matching executable normal/AI cases and setup IDs. Per-step Action / Data / Expected output. |
+| Wiki | **57 pages** generated; 55 designs plus Home/sidebar. The original 43-page wiki is published; the expansion will be synchronized after the source update. [Live wiki](https://github.com/ak91hu/sf-e2e-tst/wiki). |
 
 The optional AI cases are implemented, typechecked and designed. Their live success is **not verified** because available model quota was exhausted. They are excluded from normal model-free regression.
+
+## Expanded UI coverage
+
+Fourteen additional UI cases are implemented: SF-OPP-014–017, SF-CON-010–013, SF-QUO-010–013 and two large whole-process workflows SF-E2E-002/003. The full selection is now **50 business cases + 2 setups = 52 results**. All 55 normal/optional/setup designs and 475 steps match executable collection. New monolithic workflows cover product pricing/sync/Won/24-month Activated Contract/Service handoff and lost-deal recovery/replacement Quote/revised charges/terms/activation/handoff. Their live execution is pending the expanded CI run.
 
 ## Confirmed real failure reporting
 

@@ -1,10 +1,10 @@
 # Salesforce UI regression test designs
 
-**41 designs, 321 explicit steps:** 36 standard regression cases, 3 optional AI cases and 2 role-specific session setups. Every case has an **Action / Data / Expected output** table, including preparation and cleanup. All business record creation, assertions and cleanup use Salesforce Lightning UI. Opportunity creation runs as E2E Sales Manager; E2E Service Manager covers permissions, Case operations and the read-only Contract handoff.
+**55 designs, 475 explicit steps:** 50 standard regression cases, 3 optional AI cases and 2 role-specific session setups. Every case has an **Action / Data / Expected output** table, including preparation and cleanup. All business record creation, assertions and cleanup use Salesforce Lightning UI. Opportunity creation runs as E2E Sales Manager; E2E Service Manager covers permissions, Case operations and the read-only Contract handoff.
 
 [Repository](https://github.com/ak91hu/sf-e2e-tst) · [README](https://github.com/ak91hu/sf-e2e-tst/blob/main/README.md) · [GitHub Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Live Allure report](https://sf-e2e-tst-allure-ak91hu.netlify.app)
 
-These are test designs, not run results. The normal full run selects 38 results (36 cases + 2 setups); optional AI cases require separate model quota. Dates use UTC for entered relative dates and the configured Salesforce user timezone for automatic Closed Won dates. Secrets are excluded.
+These are test designs, not run results. The normal full run selects 52 results (50 cases + 2 setups); optional AI cases require separate model quota. Dates use UTC for entered relative dates and the configured Salesforce user timezone for automatic Closed Won dates. Secrets are excluded.
 
 | ID | Area | Objective | Role |
 | --- | --- | --- | --- |
@@ -49,5 +49,19 @@ These are test designs, not run results. The normal full run selects 38 results 
 | [SF-AI-003](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-AI-003) | Optional AI | AI Quote acceptance and extraction | E2E Sales Manager |
 | [SF-AUTH](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-AUTH) | Authentication | E2E Sales Manager JWT → Lightning session setup | E2E Sales Manager |
 | [SF-AUTH-SERVICE](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-AUTH-SERVICE) | Authentication | E2E Service Manager JWT → Lightning session setup | E2E Service Manager |
+| [SF-OPP-014](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-014) | Opportunity | Persist a past Close Date on an open Opportunity | E2E Sales Manager |
+| [SF-OPP-015](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-015) | Opportunity | Move an open Opportunity backwards through stages | E2E Sales Manager |
+| [SF-OPP-016](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-016) | Opportunity | Persist a seven-digit amount with cents | E2E Sales Manager |
+| [SF-OPP-017](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-OPP-017) | Opportunity | Edit a grouped decimal amount back to zero | E2E Sales Manager |
+| [SF-CON-010](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-010) | Contract | Edit Contract Start Date | E2E Sales Manager |
+| [SF-CON-011](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-011) | Contract | Persist a one-month Draft Contract | E2E Sales Manager |
+| [SF-CON-012](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-012) | Contract | Cancel Contract activation | E2E Sales Manager |
+| [SF-CON-013](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-CON-013) | Contract | Cancel Draft Contract deletion | E2E Sales Manager |
+| [SF-QUO-010](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-010) | Quote | Deny a Quote without changing its Opportunity | E2E Sales Manager |
+| [SF-QUO-011](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-011) | Quote | Persist a past Quote expiration date | E2E Sales Manager |
+| [SF-QUO-012](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-012) | Quote | Reset Quote tax and shipping to zero | E2E Sales Manager |
+| [SF-QUO-013](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-QUO-013) | Quote | Isolate two Quotes under one Opportunity | E2E Sales Manager |
+| [SF-E2E-002](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-002) | Sales to Service | Complete product sale through Contract and Service handoff | E2E Sales Manager → E2E Service Manager → E2E Sales Manager |
+| [SF-E2E-003](https://github.com/ak91hu/sf-e2e-tst/wiki/SF-E2E-003) | Sales to Service | Recover a lost sale and replace a denied Quote | E2E Sales Manager → E2E Service Manager → E2E Sales Manager |
 
 Editable source: [docs/test-design.ts](https://github.com/ak91hu/sf-e2e-tst/blob/main/docs/test-design.ts). Repository copy: [docs/TEST_DESIGN.md](https://github.com/ak91hu/sf-e2e-tst/blob/main/docs/TEST_DESIGN.md). Generated wiki pages: [docs/wiki](https://github.com/ak91hu/sf-e2e-tst/tree/main/docs/wiki).
