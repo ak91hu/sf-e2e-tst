@@ -2,7 +2,29 @@
 
 Date: **2026-10-03**. Target: `orgfarm-80a620fbaf-dev-ed`. Business fixture creation, workflow actions, assertions and cleanup operate exclusively through Salesforce Lightning UI. JWT/singleaccess calls are authentication infrastructure; administrator SDK calls are one-time configuration.
 
-## Completed green expanded GitHub run
+## Final complete Run tests execution
+
+[Run tests 37115961793](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37115961793): **55 passed, 0 failed, 0 skipped, exit 0**, one worker, **zero retries**. This is one complete execution of all 53 business UI cases and both session setups, including all three AI cases. Source commit `4c4de964acfac9c289e94ad60a38a92765fb8fbd`; e2e run `01a10147-3edf-7a81-b86d-fb53f81de274`; started `2026-10-03T10:20:09.727Z`; duration **41m53s**. Both Actions jobs and Allure generation, Netlify publication and artifact upload succeeded.
+
+| Area | Passed results |
+| --- | ---: |
+| Sales + Service session setup | 2 |
+| Authenticated Opportunity list | 1 |
+| Opportunity | 17 |
+| Contract | 13 |
+| Quote | 13 |
+| Role permissions and Service Case | 3 |
+| Sales → Service integration | 3 |
+| AI Opportunity / Contract / Quote UI cases | 3 |
+| **Total** | **55** |
+
+Allure contains exactly the same **55 selected results and designs**, source exit 0 and one attempt per result. Its **7,393 executed steps** have readable names and retain original technical parameters. Every attempt cleanup completed. All **51 owned-record journals** are UI-mode and show every record deleted: **zero remaining owned records**. The public [Netlify report](https://sf-e2e-tst-allure-ak91hu.netlify.app) returned HTTP 200 and its run manifest matches this execution. The artifact scan found no unredacted Salesforce session, private key or configured model credential.
+
+The two large workflows passed in **200.7s** (SF-E2E-002) and **178.1s** (SF-E2E-003), including their role changes and cleanup. SF-AI-001/002/003 passed in **51.0s / 43.7s / 68.4s**; model token usage was **66,312**. These are actual CI results after the page-object Save correction.
+
+Downloaded proof: `.validation/github-actions-37115961793/salesforce-regression-37115961793-1`. Automated verification: `.validation/verified-github-run.json`. Chromium verified the downloaded public HTML and visible Action / Data / Expected output design, **1 passed**, `.validation/report-ui/1791025742390/report.json`. All **57 remote wiki pages** match the generated sources: **55 designs, 475 steps**, verified again at `2026-10-03T11:08:51.768Z`.
+
+## Earlier green expanded GitHub run
 
 [Actions run 37107049215](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37107049215): **52 passed, 0 failed, exit 0**, one worker, **zero retries**. Commit `c5e0553a8ae81aaaa8e2cbf3b15ede0c927f4177`; e2e run `01a100bc-486c-7a90-85b2-a1b9464cdd6e`; started `2026-10-03T07:48:22.272Z`; report duration **41m14s**. This run uses English tests and all current stable direct components.
 
@@ -17,11 +39,11 @@ Date: **2026-10-03**. Target: `orgfarm-80a620fbaf-dev-ed`. Business fixture crea
 | Sales → Service integration | 3 |
 | **Total** | **52** |
 
-Allure contains the same 52 selected results, source exit 0, matched designs and complete attempt cleanup. All **48 owned-record journals** show every record deleted: **zero remaining records**. The public Netlify run manifest matches this execution. Downloaded proof: `.validation/github-actions-37107049215/salesforce-regression-37107049215-1`; automated verification: `.validation/verified-github-run.json`.
+Allure contained the same 52 selected results, source exit 0, matched designs and complete attempt cleanup. All **48 owned-record journals** show every record deleted: **zero remaining records**. The public Netlify run manifest matched this execution when verified; the latest publication now shows the final 55-result run above. Downloaded proof: `.validation/github-actions-37107049215/salesforce-regression-37107049215-1`.
 
 The subsequent [run 37109907094](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37109907094) completed **51 passed, 1 failed**, with all cleanup complete. SF-OPP-007 failed during unnecessary keyboard clearing of a text field. The failure URL, detailed log and PNG were verified. The reviewed direct-fill correction passed a targeted live **5/5** check: SF-OPP-007/012/013, SF-QUO-005 and Sales setup, `.validation/review-input-focus/report.json`, 3m42s. All three integrations passed in the failed full run, including the revised persona teardown.
 
-The **Run tests** workflow now selects all **55 results**, including the three AI UI cases. The authorized ChatGPT login works again and is configured in a repository secret. A targeted live AI/rename check and the final all-55 CI run validate the reviewed source separately. Results from distinct runs are not added together to claim a full pass.
+The **Run tests** workflow selects all **55 results**, including the three AI UI cases. The authorized ChatGPT login is configured in a repository secret. The final complete execution above validates the reviewed source; the earlier targeted checks below provide separate evidence for individual fixes.
 
 ## English/latest-component update checks
 
@@ -45,7 +67,7 @@ The three AI cases are included in Run tests/all-55 and remain separately select
 
 [Run tests 37113120320](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37113120320) selected exactly **55 results**: **54 passed, 1 failed**, zero retries. All 52 standard results and SF-AI-001/003 passed. SF-AI-002 failed because agent.act judged the outcome while Salesforce Save was pending, with disabled Save/Cancel controls. Failure URL, detailed log and PNG are verified. The PNG shows the successful Contract saved toast: the model judged an earlier pending observation before Save completed. All 51 owned-record journals are fully deleted. Every attempt cleanup completed; the failed job remained red while Allure publication succeeded.
 
-The AI boundary is revised: agents edit fields and leave the form open; the page object clicks Save, waits for the dialog to close and then verifies fresh persisted Details. The targeted corrected AI run passed **4/4**, `.validation/review-ai-save/report.json`, run `01a10141-1937-737e-9127-df58e08b5dc9`, **3m45s**, with 11 real model calls and complete cleanup. A subsequent all-55 CI run validates the correction across the complete selection. The 54 passed results are not presented as a full-suite pass.
+The AI boundary is revised: agents edit fields and leave the form open; the page object clicks Save, waits for the dialog to close and then verifies fresh persisted Details. The targeted corrected AI run passed **4/4**, `.validation/review-ai-save/report.json`, run `01a10141-1937-737e-9127-df58e08b5dc9`, **3m45s**, with 11 real model calls and complete cleanup. The final **55/55** execution above validates the correction across the complete selection. The earlier 54/55 execution remains recorded as a failure.
 
 ## Final review and live AI checks
 
@@ -53,11 +75,11 @@ The AI boundary is revised: agents edit fields and leave the form open; the page
 
 The targeted AI/rename run passed **6/6**, `.validation/review-ai-and-renames/report.json`, e2e `01a1010f-ccfa-7573-827b-b68430e5b0ec`, **5m39s**: Sales setup, **SF-AI-001/002/003**, **SF-OPP-006** and **SF-QUO-004**. All cleanup completed. Agent act/assert/extract executed **16 real model calls**. This validates the formerly unverified AI cases with current model access.
 
-All-55 collection is exact, POM/design/wiki checks pass, **12 unit checks** pass and actionlint accepts the **Run tests** workflow. The final CI run executes all 55 without filters and publishes its own completed report; its result is not inferred from these targeted runs.
+All-55 collection is exact, POM/design/wiki checks pass, **12 unit checks** pass and actionlint accepts the **Run tests** workflow. The final CI run passed all 55 without filters and published its own matching report.
 
 ## Expanded UI coverage
 
-Fourteen additional UI cases are implemented: SF-OPP-014–017, SF-CON-010–013, SF-QUO-010–013 and two large whole-process workflows SF-E2E-002/003. The full selection is now **50 business cases + 2 setups = 52 results**. All 55 normal/optional/setup designs and 475 steps match executable collection. New monolithic workflows cover product pricing/sync/Won/24-month Activated Contract/Service handoff and lost-deal recovery/replacement Quote/revised charges/terms/activation/handoff. All fourteen passed in the expanded 52-result CI run. SF-E2E-002 completed in 228.2 seconds and SF-E2E-003 in 197.1 seconds; each includes its owned UI cleanup.
+Fourteen additional UI cases are implemented: SF-OPP-014–017, SF-CON-010–013, SF-QUO-010–013 and two large whole-process workflows SF-E2E-002/003. The standard selection is **50 business cases + 2 setups = 52 results**; Run tests adds the three AI cases for **55 results**. All 55 designs and 475 steps match executable collection. New monolithic workflows cover product pricing/sync/Won/24-month Activated Contract/Service handoff and lost-deal recovery/replacement Quote/revised charges/terms/activation/handoff. All fourteen passed in both the earlier expanded 52-result run and the final 55-result run. In the earlier run, SF-E2E-002 completed in 228.2 seconds and SF-E2E-003 in 197.1 seconds; each includes its owned UI cleanup.
 
 ## Confirmed real failure reporting
 

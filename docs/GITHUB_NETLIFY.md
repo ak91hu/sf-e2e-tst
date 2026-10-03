@@ -2,7 +2,7 @@
 
 [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Netlify Allure](https://sf-e2e-tst-allure-ak91hu.netlify.app) · [Wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-Repository owner and commit author: **ak91hu**. Default branch: `main`. Actions executes UI regression; Netlify serves the generated static report. Seven secrets and thirteen configuration variables are configured. **Run tests** executes all 55 results, including the three AI UI cases, in one report. The completed [run 37107049215](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37107049215) passed 52/52 with English/latest-component results and deployed its matching report; see [verification](VERIFICATION.md) for the final-source run.
+Repository owner and commit author: **ak91hu**. Default branch: `main`. Actions executes UI regression; Netlify serves the generated static report. Seven secrets and thirteen configuration variables are configured. **Run tests** executes all 55 results, including the three AI UI cases, in one report. The completed [run 37115961793](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37115961793) passed **55/55**, with zero retries, and deployed its matching report. All 51 owned-record journals show complete UI cleanup; see [verification](VERIFICATION.md) for the source commit and publication checks.
 
 ## Repository secrets and variables
 

@@ -19,13 +19,13 @@
 [![Salesforce CLI](https://img.shields.io/badge/Salesforce_CLI-2.152.14-00a1e0?logo=salesforce&logoColor=white)](docs/AUTH_SETUP.md)
 [![UI tests](https://img.shields.io/badge/Business_tests-100%25_UI-success)](docs/TEST_DESIGN.md)
 
-Automated regression with [TesterArmy e2e](https://tester.army/e2e), TypeScript and Chromium. **All 50 standard regression cases are UI tests:** fixtures, business actions, persisted-data assertions and cleanup operate through Salesforce Lightning. Authentication and one-time administrative provisioning are separate infrastructure tasks.
+Automated regression with [TesterArmy e2e](https://tester.army/e2e), TypeScript and Chromium. **All 53 business cases are UI tests**, including the three AI cases: fixtures, business actions, persisted-data assertions and cleanup operate through Salesforce Lightning. Authentication and one-time administrative provisioning are separate infrastructure tasks.
 
 **E2E Sales Manager** creates and owns Opportunities. Every Opportunity fixture verifies Owner and Created By through UI. **E2E Service Manager** has a separate session for permission checks, Case creation/editing and the read-only Contract handoff. Administrators are excluded from business Opportunity creation.
 
 Allure uses plain English executed steps such as **Enter Opportunity Name**, **Click Save** and **Sign in as Service Manager**, expected test designs and **detailed failure logs, automatic PNG screenshots and the exact failure URL**. GitHub Actions **Run tests** runs all **55 results**, including the three AI UI cases, and publishes the completed report to **[Netlify](https://sf-e2e-tst-allure-ak91hu.netlify.app)**. [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Test design wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-**Latest completed green standard GitHub run: 52/52 passed**, [run 37107049215](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37107049215), 2026-10-03, with current stable components, English results, one worker and zero retries. All 48 fixture journals show complete UI cleanup and no remaining owned records. A later run found a text-clearing failure, now corrected and verified in a targeted live run. The all-55 CI selection includes the AI cases. [Verification evidence](docs/VERIFICATION.md) records actual results and the latest publication.
+**Latest completed Run tests: 55/55 passed**, [run 37115961793](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37115961793), 2026-10-03, in **41m53s**, with all three AI cases, current stable components, English results, one worker and zero retries. All **51 fixture journals** show complete UI cleanup and no remaining owned records. The public Netlify report matches this execution. [Verification evidence](docs/VERIFICATION.md) records the source commit, run identity, report checks and earlier failures corrected during review.
 
 ## Documentation
 
@@ -206,7 +206,7 @@ The [workflow](.github/workflows/salesforce-regression.yml) runs credential-free
 
 A failed regression remains a **red job**, while its completed current report is still generated and deployed. The Step Summary links to Netlify. Artifacts retain original results, redacted evidence, SDK results, HTML and precise recovery journals for 14 days; auth/session/private-key files are excluded.
 
-All six required secrets and eleven configuration variables are already set. Secrets: `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME`, `SF_CLIENT_ID`, `SF_JWT_PRIVATE_KEY`, `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`. The dedicated site belongs to the `ak91hu` Netlify team. Publication accepts only the four generated static files and uses `--prod --no-build`.
+All seven required secrets and thirteen configuration variables are already set. Secrets: `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME`, `SF_CLIENT_ID`, `SF_JWT_PRIVATE_KEY`, `E2E_OAUTH_CREDENTIALS`, `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`. Model provider and model are repository variables. The dedicated site belongs to the `ak91hu` Netlify team. Publication accepts only the four generated static files and uses `--prod --no-build`.
 
 Wiki pages are generated from the same typed design source as Allure and the consolidated document. Each case has its own page and **Action / Data / Expected output** table. [Publication and maintenance instructions](docs/GITHUB_NETLIFY.md) cover the separate wiki Git repository.
 
