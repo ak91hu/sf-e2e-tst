@@ -5,6 +5,7 @@ import type { FinishedRun, Report, Reporter } from 'e2e';
 import { Stage, Status, type StepResult } from 'allure-js-commons';
 import { ReporterRuntime, createDefaultWriter } from 'allure-js-commons/sdk/reporter';
 import { testDesigns } from '../docs/test-design.ts';
+import { redactAuthUrl } from '../support/auth-redaction.ts';
 
 type Result = Report['run']['results'][number];
 type Attempt = Result['attempts'][number];
@@ -56,15 +57,7 @@ function attachEvidence(runtime: ReporterRuntime, uuid: string, attempt: Attempt
 }
 
 export function failureUrl(value?: string) {
-  if (!value) return undefined;
-  try {
-    const url = new URL(value);
-    if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return undefined;
-    for (const key of [...url.searchParams.keys()]) if (/^(?:sid|otp|cshc|access_token|password|code|state|token)$/i.test(key)) url.searchParams.set(key, '[redacted]');
-    // Business Lightning routes have no credential-bearing fragment.
-    if (/access_token|id_token|password/i.test(url.hash)) url.hash = '#[redacted]';
-    return url.href;
-  } catch { return undefined; }
+  return value ? redactAuthUrl(value) : undefined;
 }
 
 export function writeAllureResults(run: FinishedRun, signal?: AbortSignal) {

@@ -29,6 +29,12 @@ export async function openSalesforceSession(app: App, screen: Screen, browser: B
     }
     await expect.poll(async () => {
       const pathname = new URL(await browser.url()).pathname;
+      if (pathname === '/msg/maintenanceandavailable.jsp') {
+        // A future maintenance notice is an ordinary first-login UI page.
+        // Follow its real link; never construct the credential-bearing retURL.
+        await screen.getByRole('link', 'Got it', { exact: true, visible: true }).tap();
+        return false;
+      }
       if (pathname.includes('/identity/') || pathname.includes('/login') || pathname.includes('/ChangePassword') || pathname === '/') {
         throw new Error('Salesforce UI policy requires interactive authentication. Check pre-authorization, UI access and session policies in AUTH_SETUP.md. Regression never waits for an e-mail code.');
       }

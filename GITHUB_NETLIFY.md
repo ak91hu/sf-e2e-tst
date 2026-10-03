@@ -19,7 +19,7 @@ Repository: [ak91hu/sf-e2e-tst](https://github.com/ak91hu/sf-e2e-tst), tulajdono
 | `NETLIFY_AUTH_TOKEN` | A riportoldalt birtokló fiók Netlify hozzáférési tokenje. |
 | `NETLIFY_SITE_ID` | A kívánt Netlify report site azonosítója. |
 
-Az admin jelszava, e-mailkód és AI-kulcs nem szükséges. Beállított repository variables (11): `SF_BASE_URL`, `SF_JWT_AUDIENCE`, `SF_TIME_ZONE` (mindkét persona Salesforce-időzónája), . Az `SF_OPPORTUNITY_RECORD_TYPE` opcionális, jelenleg üres; az `.env.example` szerinti Stage-értékek és Won/Lost százalékok.
+Az admin jelszava, e-mailkód és AI-kulcs nem szükséges. Beállított repository variables (11): `SF_BASE_URL`, `SF_JWT_AUDIENCE`, `SF_TIME_ZONE`, `SF_STAGE_INITIAL`, `SF_STAGE_QUALIFIED`, `SF_STAGE_PROPOSAL`, `SF_STAGE_NEGOTIATION`, `SF_STAGE_WON`, `SF_STAGE_LOST`, `SF_WON_PROBABILITY`, `SF_LOST_PROBABILITY`. Az `SF_OPPORTUNITY_RECORD_TYPE` opcionális, jelenleg üres.
 
 ## Netlify report site
 
@@ -63,6 +63,6 @@ A screenshot az alap üzleti Lightning-munkamenetben automatikusan készül. Az 
 
 ## Ellenőrizhetőség
 
-`npm run test:evidence-harness` egy elkülönített, szintetikus UI-esetet szándékosan elront. A wrapper csak akkor sikeres, ha a teszt ténylegesen failed, és az Allure-ban részletes log, pontos URL és érvényes automatikus PNG van, token-canary nélkül. Ez nem kerül a normál regresszióba vagy a Netlify-főriportba. A HTML-generálás futásazonosítót és eredményszámot ellenőriz, hogy részfutások vagy korábbi eredmények ne olvadjanak össze.
+`npm run test:evidence-harness` két elkülönített, szintetikus UI-esetet szándékosan elront. A wrapper csak akkor sikeres, ha a teszt ténylegesen failed, és az Allure-ban részletes log, pontos URL és érvényes automatikus PNG van, OTP/checksum és beágyazott SID/contentDoor canary nélkül. Ez nem kerül a normál regresszióba vagy a Netlify-főriportba. A HTML-generálás futásazonosítót és eredményszámot ellenőriz, hogy részfutások vagy korábbi eredmények ne olvadjanak össze.
 
 Források: [e2e custom reporters](https://github.com/tester-army/e2e), [Allure JS reporter SDK](https://github.com/allure-framework/allure-js/blob/main/packages/allure-js-commons/README.md), [Allure 3 konfiguráció](https://allurereport.org/docs/v3/configure/), [Allure report generálás](https://allurereport.org/docs/v3/generate-report/), [Netlify CLI](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/), [Actions cache](https://github.com/actions/cache).

@@ -1,7 +1,8 @@
 import { secrets, test as untypedTest, type TestAPI, type TestFixtures } from 'e2e';
 import { defineEngine, type EngineAttemptContext, type EngineFixtureContext } from 'e2e/engine';
-import { web, type Browser, type WebOptions } from '@e2e-dev/web';
+import { web, surfaceOf, type Browser, type WebOptions } from '@e2e-dev/web';
 import { environment } from './environment.ts';
+import { authRedactionValues, encodedSecretForms } from './auth-redaction.ts';
 
 export type Persona = 'sales' | 'service';
 export interface SalesforceAuth { open(persona: Persona): Promise<void> }
@@ -50,7 +51,17 @@ export function salesforceWeb(options: WebOptions = {}, personas: readonly Perso
             // Public browser.goto records its label before executing; late
             // secret registration in e2e 0.15.1 does not rewrite that label.
             // The outer operation records only the persona and its outcome.
-            try { await base.session!.open!(url.href, context.operation(45_000)); }
+            try {
+              await base.session!.open!(url.href, context.operation(45_000));
+              // Read authentication metadata inside the engine before any
+              // recorded UI observation can expose redirected credentials.
+              const live = surfaceOf(base)!;
+              const values = authRedactionValues(live.page().url());
+              for (const cookie of await live.context().cookies()) {
+                if (/^(?:sid|sid_Client)$/i.test(cookie.name)) values.push(...encodedSecretForms(cookie.value));
+              }
+              if (values.length) await attempt.resolveSecret(handles[persona][0], { derived: () => values });
+            }
             catch {
               // A browser error page can render the navigation URL. Replace
               // it with a token-free page before failure pixels are captured.

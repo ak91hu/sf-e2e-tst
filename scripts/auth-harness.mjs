@@ -12,7 +12,7 @@ function scan(directory) {
     if (file.isDirectory()) scan(path);
     else if (/\.(json|xml|md|txt)$/.test(file.name)) {
       const text = readFileSync(path, 'utf8');
-      if (/synthetic-ui-otp-canary|synthetic-ui-checksum-canary/.test(text)) {
+      if (/synthetic-ui-(?:otp|checksum|sid|content)-canary/.test(text)) {
         throw new Error('Synthetic UI session secret leaked into the authentication report.');
       }
     }

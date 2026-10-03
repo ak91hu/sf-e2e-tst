@@ -1,6 +1,6 @@
 # Salesforce hitelesítés és egyszeri konfiguráció
 
-Ezen az orgon az alkalmazás, a tanúsítvány és mindkét üzleti felhasználó beállítása elkészült. A regresszió JWT + Single Access UI Bridge használatával nyit friss sessiont, jelszó és ismétlődő e-mailkód nélkül. Váratlan interaktív hitelesítésnél gyors hibával megáll.
+Ezen az orgon az alkalmazás, a tanúsítvány és mindkét üzleti felhasználó beállítása elkészült. A regresszió JWT + Single Access UI Bridge használatával nyit friss sessiont, jelszó és ismétlődő e-mailkód nélkül. Váratlan interaktív hitelesítésnél gyors hibával megáll. A Salesforce jövőbeli karbantartási értesítését a valódi „Got it” UI-linkkel nyugtázza. Az engine az átirányítás beágyazott SID/contentDoor paramétereit és session-cookie-jait a hivatalos Secret-redakcióba regisztrálja az első UI-megfigyelés előtt; ez a védelem a mentett sessionnel együtt helyreáll.
 
 ## Jelenlegi beállítás
 

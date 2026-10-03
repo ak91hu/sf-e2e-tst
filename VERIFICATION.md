@@ -59,6 +59,12 @@ A régi, megszakadt vagy failed futások saját adatnaplóit célzott UI-recover
 
 TypeScript 6.0.3 rögzítve: a Netlify CLI 27.10.2 compiler API-t használó függősége TypeScript 7 alatt a deploy előtt hibával leállt. A kompatibilis verzióval a typecheck és a production deploy sikeres. Az üzleti tesztforrás és a böngészős runtime nem változott.
 
+## Első GitHub runner és javítás
+
+[Az első Actions-futás](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37100779188) source/report ellenőrzései sikeresek, de mindkét auth setup a Salesforce jövőbeli karbantartási értesítőoldalán megállt: 2 failed, 36 skipped. A valódi Got it UI-link kezelése és a beágyazott SID/contentDoor URL-paraméterek engine-beli redakciója hozzáadva. Az érintett napló, artifact, history cache és korábbi Netlify-deploy eltávolítva; az érintett UI-sessionök logoutja elvégezve.
+
+Javítás utáni ellenőrzés: typecheck sikeres; 9 unit passed; auth/shadow harness 4 passed (`.validation/auth-harness/1791006813567/report.json`); két várt failed-evidence canary, wrapper exit 0 (`.validation/allure-failure-harness/1791007038891/report.json`). Az utóbbi a nested auth URL redakcióját, logját és automatikus PNG-jét is igazolja. Élő célzott login/lista: 2 passed (`.validation/ui-auth-maintenance/report.json`). A Netlifyon publikált HTML design UI-próbája: 1 passed (`.validation/report-ui/1791006386873/report.json`).
+
 ## Megismétlés
 
 ```powershell

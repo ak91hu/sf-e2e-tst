@@ -966,7 +966,7 @@ Szerkeszthető forrás: [docs/test-design.ts](docs/test-design.ts). Frissítés:
 
 | # | UI-művelet / ellenőrzés | Elvárt eredmény |
 | --- | --- | --- |
-| 1 | A szerepkör JWT / singleaccess hitelesítésének indítása az engine-ben. | A natív Lightning-belépés interaktív kód nélkül lezárul; token nincs a naplóban. |
+| 1 | A szerepkör JWT / singleaccess hitelesítésének indítása; jövőbeli karbantartási értesítésnél a valódi Got it UI-link követése. | A natív Lightning-belépés interaktív kód nélkül lezárul; a token és a beágyazott átirányítási munkamenet-paraméterek redaktáltak. |
 | 2 | Opportunity lista és View profile ellenőrzése. | A Search this list látható; New látható; a profilnév pontosan E2E Sales Manager. |
 | 3 | session.save('salesforce'). | A hitelesített munkamenet menthető; nincs üzleti adatmódosítás. |
 
@@ -984,6 +984,6 @@ Szerkeszthető forrás: [docs/test-design.ts](docs/test-design.ts). Frissítés:
 
 | # | UI-művelet / ellenőrzés | Elvárt eredmény |
 | --- | --- | --- |
-| 1 | A szerepkör JWT / singleaccess hitelesítésének indítása az engine-ben. | A natív Lightning-belépés interaktív kód nélkül lezárul; token nincs a naplóban. |
+| 1 | A szerepkör JWT / singleaccess hitelesítésének indítása; jövőbeli karbantartási értesítésnél a valódi Got it UI-link követése. | A natív Lightning-belépés interaktív kód nélkül lezárul; a token és a beágyazott átirányítási munkamenet-paraméterek redaktáltak. |
 | 2 | Opportunity lista és View profile ellenőrzése. | A Search this list látható; a profilnév pontosan E2E Service Manager. |
 | 3 | session.save('service'). | A hitelesített munkamenet menthető; nincs üzleti adatmódosítás. |

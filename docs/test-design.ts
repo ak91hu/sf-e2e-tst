@@ -180,7 +180,7 @@ for (const [id, persona, session] of [['SF-AUTH', sales, 'salesforce'], ['SF-AUT
   data: 'Privát JWT-kulcs, preautorizált kliens és szerepkör-felhasználó; a titkok nem részei a designnak vagy publikus riportnak.',
   preconditions: 'ECA Web scope, JWT engedély, felhasználóhoz rendelt preautorizáció; nem szükséges interaktív e-mailkód.',
   steps: [
-    ['A szerepkör JWT / singleaccess hitelesítésének indítása az engine-ben.', 'A natív Lightning-belépés interaktív kód nélkül lezárul; token nincs a naplóban.'],
+    ['A szerepkör JWT / singleaccess hitelesítésének indítása; jövőbeli karbantartási értesítésnél a valódi Got it UI-link követése.', 'A natív Lightning-belépés interaktív kód nélkül lezárul; a token és a beágyazott átirányítási munkamenet-paraméterek redaktáltak.'],
     ['Opportunity lista és View profile ellenőrzése.', `A Search this list látható; ${persona === sales ? 'New látható; ' : ''}a profilnév pontosan ${persona}.`],
     [`session.save('${session}').`, 'A hitelesített munkamenet menthető; nincs üzleti adatmódosítás.'],
   ],
