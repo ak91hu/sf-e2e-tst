@@ -40,6 +40,10 @@ A komponensbadge-ek rögzített verziókat jelölnek; az Actions badge a legutó
 Node.js **26 ajánlott**, minimum 24; npm és egy letöltött Playwright Chromium szükséges. Allure 3 Java nélkül, Node.js-en fut. A célorg ezen a gépen már konfigurált. Új gépen a `.env.example` másolatából állítsd be a két persona felhasználónevét, a Consumer Key-t és biztonságosan a privát JWT-kulcsot.
 
 ```powershell
+git clone https://github.com/ak91hu/sf-e2e-tst.git
+Set-Location sf-e2e-tst
+Copy-Item .env.example .env
+# Állítsd be a saját JWT-hitelesítést az AUTH_SETUP.md szerint.
 npm ci --no-audit --no-fund
 npm run install:browsers
 npm run doctor
@@ -224,7 +228,7 @@ npm run test:evidence-harness
 npm run test:report-ui
 ```
 
-A kilenc unit teszt JWT-aláírást, claims-et, audience/origin és URL-védelmet, replay ID-t és titokmentes hibákat ellenőriz. A négy szintetikus böngészős auth/shadow teszt minden kérést elfog; nem lép be a Salesforce-ba. Az evidence harness két elkülönített UI-esetet szándékosan megbuktat, majd ellenőrzi a failed Allure-státuszt, részletes logot, pontos URL-t, automatikus PNG-t és a beágyazott hitelesítési URL-ek tokenmentességét. A wrapper ezek sikeres bizonyítása esetén ad exit 0-t; ez nem zöldre átírt üzleti teszt, és nem része a publikált regressziós reportnak.
+A kilenc unit teszt JWT-aláírást, claims-et, audience/origin és URL-védelmet, replay ID-t és titokmentes hibákat ellenőriz. Az öt szintetikus böngészős auth/shadow/numeric teszt minden kérést elfog; nem lép be a Salesforce-ba. Az evidence harness két elkülönített UI-esetet szándékosan megbuktat, majd ellenőrzi a failed Allure-státuszt, részletes logot, pontos URL-t, automatikus PNG-t és a beágyazott hitelesítési URL-ek tokenmentességét. A wrapper ezek sikeres bizonyítása esetén ad exit 0-t; ez nem zöldre átírt üzleti teszt, és nem része a publikált regressziós reportnak.
 
 A report UI harness a már generált `allure-report/index.html` fájlt helyi HTTP-kiszolgálón, Chromiumban nyitja meg. Egy sikeres üzleti eset designjának megjelenítése külön is ellenőrizhető: `npm run test:report-ui -- allure-report/index.html "SF-OPP-001 | Létrehozás → Qualification → Proposal → Negotiation → Closed Won" --design`. A Salesforce-regresszió és ez a riportpróba ezen a gépen egymás után fusson.
 

@@ -52,7 +52,16 @@ export class SalesUi {
       // synthetic fill replaces it. Real selection/deletion updates their model.
       await field.press('ControlOrMeta+A'); await field.press('Backspace'); await expect(field).toHaveValue('');
     }
-    await field.fill(String(value)); await expect(field).toHaveValue(String(value));
+    await field.fill(String(value));
+    if (typeof value === 'number') {
+      // Lightning can format a number as USD before or after focus changes.
+      // Compare the visible numeric value, rejecting empty/malformed input.
+      await expect.poll(async () => {
+        const actual = (await field.inputValue()).trim();
+        return /^-?\$?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/.test(actual)
+          ? Number(actual.replace(/[$,]/g, '')) : Number.NaN;
+      }).toBe(value);
+    } else await expect(field).toHaveValue(value);
   }
   async date(label: string, iso: string) { await this.fill(label, iso ? uiDate(iso) : ''); }
   async choose(label: string, value: string) {

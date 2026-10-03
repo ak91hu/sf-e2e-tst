@@ -18,7 +18,7 @@ async function field(name: 'otp' | 'cshc') {
   return (await bridge)[name];
 }
 export default {
-  ...main, projectId: 'ui-bridge-local-validation', tests: ['validation/ui-bridge.e2e.ts', 'validation/shadow-dom.e2e.ts'],
+  ...main, projectId: 'ui-bridge-local-validation', tests: ['validation/ui-bridge.e2e.ts', 'validation/shadow-dom.e2e.ts', 'validation/numeric-input.e2e.ts'],
   targets: [{ ...main.targets[0], engine: salesforceWeb({ browser: 'chromium', viewport: { width: 1440, height: 1000 } }, ['sales']) }],
   secrets: { salesforceUiToken: () => field('otp'), salesforceUiChecksum: () => field('cshc') },
 };

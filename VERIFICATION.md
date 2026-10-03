@@ -65,6 +65,14 @@ TypeScript 6.0.3 rögzítve: a Netlify CLI 27.10.2 compiler API-t használó fü
 
 Javítás utáni ellenőrzés: typecheck sikeres; 9 unit passed; auth/shadow harness 4 passed (`.validation/auth-harness/1791006813567/report.json`); két várt failed-evidence canary, wrapper exit 0 (`.validation/allure-failure-harness/1791007038891/report.json`). Az utóbbi a nested auth URL redakcióját, logját és automatikus PNG-jét is igazolja. Élő célzott login/lista: 2 passed (`.validation/ui-auth-maintenance/report.json`). A Netlifyon publikált HTML design UI-próbája: 1 passed (`.validation/report-ui/1791006386873/report.json`).
 
+## Linuxon formázott összegek
+
+[A második teljes Actions-futás](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37101520154): **37 passed, 1 failed**, 38 eredmény, nulla retry; natív Sales/Service auth sikeres. Az SF-OPP-007 esetben a Salesforce a beírt `1` számot azonnal `$1.00`-ra formázta, a közös POM pedig nyers stringet várt. Az összes cleanup complete; a failed eset Allure-logja, konkrét URL-je és PNG-je igazolt. A job piros maradt, miközben az Allure build, Netlify deploy és artifact mentés sikeres volt. Futás: `01a10059-2466-725a-99a1-5dc55e92aba3`.
+
+A numerikus mezőknél a POM most szigorúan a látható számértéket ellenőrzi, USD-formázást és ezreselválasztót elfogadva. String bemenet továbbra is pontos string-egyezést vár. Typecheck sikeres; az új azonnali formázási UI-próbával az infrastruktúra-harness **5 passed** (`.validation/auth-harness/1791009075788/report.json`).
+
+A célzott élő javításpróba **5 passed, 0 failed**, 3m34s: SF-OPP-007/012/013, SF-QUO-005 és Sales setup (`.validation/ui-currency-format/report.json`, futás `01a10075-e4f6-7163-a8b9-da54dc29955e`). A formázott 1 USD, 0 USD, 0.01 USD, Tax/Shipping és a Cancel után változatlan mentett adatok ellenőrzése is sikeres.
+
 ## Megismétlés
 
 ```powershell
