@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import type { FinishedRun, Report, Reporter } from 'e2e';
 import { Stage, Status, type StepResult } from 'allure-js-commons';
 import { ReporterRuntime, createDefaultWriter } from 'allure-js-commons/sdk/reporter';
@@ -69,12 +69,18 @@ function retainedRecordLinks(attempt: Attempt | undefined, artifactsRoot: string
 
 function attachEvidence(runtime: ReporterRuntime, uuid: string, attempt: Attempt, artifactsRoot: string, passed: boolean) {
   for (const artifact of attempt.artifacts) {
-    const screenshot = artifact.kind === 'screenshot' && (passed || artifact.id === attempt.failure?.screenshot) && artifact.mediaType === 'image/png';
+    const screenshot = artifact.kind === 'screenshot' && artifact.mediaType === 'image/png';
     const log = artifact.kind === 'log' && ['text/plain', 'application/json', 'text/markdown'].includes(artifact.mediaType);
     if ((!screenshot && !log) || artifact.redaction !== 'complete' || !artifact.path) continue;
     const actual = evidencePath(artifactsRoot, artifact.path);
-    if (statSync(actual).size > 4 * 1024 * 1024) continue;
-    runtime.writeAttachment(uuid, undefined, screenshot ? (passed ? 'Screenshot of successful UI run' : 'Screenshot at failure') : artifact.path.endsWith('/retained-records.json') ? 'Permanently retained sandbox records' : 'Redacted UI evidence', readFileSync(actual), { contentType: artifact.mediaType, fileExtension: screenshot ? 'png' : artifact.mediaType === 'application/json' ? 'json' : 'txt' });
+    if (!screenshot && statSync(actual).size > 4 * 1024 * 1024) continue;
+    const checkpoint = basename(artifact.path, '.png');
+    const completion = /(?:test-completion-evidence|authentication-success)$/.test(checkpoint);
+    const name = screenshot
+      ? artifact.id === attempt.failure?.screenshot ? 'Screenshot at failure'
+        : passed && completion ? 'Screenshot of successful UI run' : `UI evidence: ${checkpoint}`
+      : artifact.path.endsWith('/retained-records.json') ? 'Permanently retained sandbox records' : 'Redacted UI evidence';
+    runtime.writeAttachment(uuid, undefined, name, readFileSync(actual), { contentType: artifact.mediaType, fileExtension: screenshot ? 'png' : artifact.mediaType === 'application/json' ? 'json' : 'txt' });
   }
 }
 
@@ -123,7 +129,7 @@ export function writeAllureResults(run: FinishedRun, signal?: AbortSignal) {
         links: [...(url ? [{ name: 'URL at failure', type: 'failure', url }] : []), ...retainedRecordLinks(attempt, run.artifactsRoot)],
         steps: attempt ? steps(attempt) : [],
       });
-      if (attempt && status !== Status.PASSED) {
+      if (attempt) {
         runtime.writeAttachment(uuid, undefined, 'Detailed attempt log', Buffer.from(JSON.stringify({ test: fullName, startedAt: attempt.startedAt, durationMs: attempt.durationMs, status: attempt.status, failureUrl: url, error: attempt.error, secondaryErrors: attempt.secondaryErrors, cleanup: attempt.cleanup, steps: attempt.steps }, null, 2)), { contentType: 'application/json', fileExtension: 'json' });
         if (url) runtime.writeAttachment(uuid, undefined, 'Failure URL', Buffer.from(url), { contentType: 'text/uri-list', fileExtension: 'txt' });
       }

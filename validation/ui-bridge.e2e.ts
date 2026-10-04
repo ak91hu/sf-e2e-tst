@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from '../support/auth-engine.ts';
 import { expect } from 'e2e';
-import { openSalesforceSession } from '../support/ui-login.ts';
+import { openSalesforceSession, verifySalesforcePersona } from '../support/ui-login.ts';
 import { environment } from '../support/environment.ts';
 
 for (const native of [false, true]) test(`Synthetic OAuth ${native ? 'native engine' : 'Secret-fill bridge'} authentication`, async ({ app, screen, browser, salesforceAuth }) => {
@@ -24,12 +24,15 @@ for (const native of [false, true]) test(`Synthetic OAuth ${native ? 'native eng
     if (url.pathname === '/lightning/o/Opportunity/list') {
       assert.ok(submitted);
       assert.match(route.request.headers.cookie ?? '', /synthetic_session=verified/);
-      return route.fulfill({ headers: { 'Content-Type': 'text/html' }, body: '<!doctype html><title>Test Opportunity list</title><input placeholder="Search this list..."><button>New</button>' });
+      return route.fulfill({ headers: { 'Content-Type': 'text/html' }, body: `<!doctype html><title>Test Opportunity list</title><input placeholder="Search this list..."><button>New</button>
+        <button onclick="const profile=document.getElementById('profile');profile.hidden=!profile.hidden">View profile</button><p id="profile" hidden>E2E Sales Manager</p>` });
     }
     return route.abort();
   });
   await openSalesforceSession(app, screen, browser, 'sales', native ? salesforceAuth : undefined);
   await expect(screen.getByRole('button', 'New')).toBeVisible();
+  await verifySalesforcePersona(screen, 'sales', native ? app : undefined);
+  await expect(screen.getByText('E2E Sales Manager', { exact: true, visible: true })).toHaveCount(0);
   // Both canaries must be redacted from the report and console by the framework.
   console.log('Redaction check: synthetic-ui-otp-canary / synthetic-ui-checksum-canary');
   if (native) await app.screenshot();

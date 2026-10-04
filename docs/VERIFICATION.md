@@ -1,5 +1,19 @@
 # Verification evidence
 
+## Non-E2E coverage and checkpoint screenshots — 2026-10-04
+
+Added **32 unit tests and 15 reporting integration tests**, bringing the separate credential-free checks to **45 unit + 15 integration tests, all passing**. They cover fixture/date/currency boundaries, permanent retention and rename guards, persona restoration, and real Allure SDK/filesystem behavior for checkpoint PNGs, failed attempts, retries, filtering, redaction, large screenshots, artifact paths and record links. The currency tests exposed malformed thousands grouping; the visible USD parser now rejects values such as `$12,34.56`. These tests run separately from the unchanged **100 selected Salesforce UI results**, and reporting integration checks now run in CI.
+
+Typecheck, POM enforcement, full-suite collection/design matching (**100 designs, 883 steps**) and wiki consistency (**102 pages**) passed. `npm run test:checks` runs both non-E2E layers. Integration serializer artifacts remain in `.validation/reporting-tests`.
+
+Browser evidence harness run **`01a10835-cbc6-79e3-aafb-a64f59c9bc5e`**, `.validation/allure-failure-harness/1791139104452`: **two successful probes and three intentionally failed diagnostic probes**, with the wrapper exiting **0** after validating every expected result. All requests were intercepted; no Salesforce data was created or deleted. The automatic page-object probe exported **11 actual browser PNGs** spanning filled forms, Save, creation, persisted Details, cancelled edits and required-field rejection. The retained Opportunity/Quote probe exported **three PNGs** and both exact links. The failure probe preserved its earlier checkpoint plus the original failure PNG; Service restoration did not replace the original failure evidence. Synthetic authentication secrets remained absent from exported text evidence.
+
+Allure now attaches each checkpoint with its ordered filename and keeps earlier screenshots on failed attempts. Every attempt has a detailed log. Fully redacted PNG evidence is retained even above 4 MiB. Authentication setups capture both the authenticated list and verified persona; future full-run retention verification requires **at least two PNGs per passed result**, plus completion evidence and every permanent record link. Historical runs below used the earlier one-PNG requirement. The live 100-result sandbox suite has not been rerun for this change.
+
+Generated local evidence report: `.validation/checkpoint-evidence-report/index.html`. Chromium verified both named Opportunity/Quote checkpoint attachments, the completion PNG, retained-record manifest and direct record links: **1/1 passed**, `.validation/report-ui/1791139234329/report.json`. This report contains synthetic validation probes, including their intentional failures, and has not been published.
+
+Authentication/input harness: **5/5 passed**, `.validation/auth-harness/1791139312710/report.json`. It also verified a PNG captured while the Sales persona name was visibly open, then confirmed the profile closed. Secret-fill maintenance continues to omit screenshots; synthetic session secrets were absent from all text reports and artifacts.
+
 ## Current 100-result expansion — 2026-10-04
 
 The full collection selects **100 UI results: 98 cases and two UI-verified session setups**. There are **100 test designs, 883 explicit Action / Data / Expected output steps and 102 generated wiki pages**. The 30 added cases are SF-OPP-025–034, SF-CON-014–023 and SF-QUO-022–031. They cover field boundaries, persistence and cancellation, independent Quote charge recalculation and isolation between records sharing an Account or separate Opportunity parents.

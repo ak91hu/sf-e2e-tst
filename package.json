@@ -13,6 +13,8 @@
     "doctor": "node scripts/doctor.mjs",
     "typecheck": "node node_modules/typescript-native/bin/tsc --noEmit",
     "test:unit": "node --test unit/*.test.ts",
+    "test:reporting": "node --test integration/*.test.ts",
+    "test:checks": "npm run test:unit && npm run test:reporting",
     "test:auth-harness": "node scripts/auth-harness.mjs",
     "auth:keys": "node scripts/auth-keys.mjs",
     "auth:provision": "node scripts/provision-salesforce.mjs",

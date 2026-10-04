@@ -58,11 +58,14 @@ export async function switchSalesforcePersona(app: App, screen: Screen, browser:
   await browser.route(landing, route => route.fulfill({ status: 200, headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' }, body: '<title>Salesforce session reset</title><p>Opening a fresh Salesforce session.</p>' }));
   try { await app.clearState(); } finally { await browser.unroute(landing); }
   await openSalesforceSession(app, screen, browser, persona, auth);
-  await verifySalesforcePersona(screen, persona);
+  await verifySalesforcePersona(screen, persona, app);
 }
 
-export async function verifySalesforcePersona(screen: Screen, persona: 'sales' | 'service') {
+export async function verifySalesforcePersona(screen: Screen, persona: 'sales' | 'service', app?: App) {
   await screen.getByRole('button', 'View profile', { visible: true }).tap();
   await expect(screen.getByText(persona === 'sales' ? 'E2E Sales Manager' : 'E2E Service Manager', { exact: true, visible: true }).first()).toBeVisible();
+  // Native business authentication permits masked pixels. Maintenance callers
+  // omit app because their Secret-fill bootstrap intentionally forbids them.
+  await app?.screenshot(`${persona}-verified-persona`);
   await screen.getByRole('button', 'View profile', { visible: true }).tap();
 }

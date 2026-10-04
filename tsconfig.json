@@ -21,6 +21,7 @@
     "reporting/**/*.ts",
     "tests/**/*.ts",
     "unit/**/*.ts",
+    "integration/**/*.ts",
     "maintenance/**/*.ts",
     "validation/**/*.ts"
   ]

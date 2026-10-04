@@ -9,7 +9,7 @@ export class QuotePage {
   constructor(private readonly ui: SalesUi) { this.lines = new QuoteLineItems(ui); }
   async closeValidationError() {
     const error = this.ui.screen.getByRole('button', 'Close error dialog', { visible: true });
-    await expect(error).toBeVisible(); await error.tap(); await expect(error).not.toBeVisible();
+    await expect(error).toBeVisible(); await this.ui.evidence('quote-validation-error'); await error.tap(); await expect(error).not.toBeVisible();
   }
   async assertEmptyRelatedList(deal: Deal) {
     await this.ui.app.open(`/lightning/r/Opportunity/${deal.record.id}/related/Quotes/view`);

@@ -7,21 +7,38 @@ const output = resolve('.validation', 'allure-failure-harness', String(Date.now(
 const child = spawnSync(process.execPath, ['scripts/e2e.mjs', 'run', '--config', 'e2e.evidence.config.ts', '--output', output], { stdio: 'inherit' });
 assert.equal(child.status, 1, 'The canary must fail as a test assertion, not pass or crash.');
 const report = JSON.parse(readFileSync(resolve(output, 'report.json'), 'utf8'));
-assert.equal(report.run.results.length, 4);
+assert.equal(report.run.results.length, 5);
 assert.equal(report.run.results.filter(result => result.status === 'failed').length, 3);
-assert.equal(report.run.results.filter(result => result.status === 'passed').length, 1);
+assert.equal(report.run.results.filter(result => result.status === 'passed').length, 2);
 const manifest = JSON.parse(readFileSync(resolve(output, 'allure-results/current.json'), 'utf8'));
 assert.equal(manifest.runId, report.run.id);
-assert.equal(manifest.resultFiles, 4);
+assert.equal(manifest.resultFiles, 5);
 const directory = resolve(output, manifest.resultsDirectory);
 const files = readdirSync(directory);
 for (const filename of files.filter(name => name.endsWith('-result.json'))) {
 const result = JSON.parse(readFileSync(resolve(directory, filename), 'utf8'));
+if (result.name === 'Automatic page-object checkpoint evidence canary') {
+  assert.equal(result.status, 'passed');
+  const checkpoints = result.attachments.filter(item => item.type === 'image/png');
+  assert.equal(checkpoints.length, 11, 'Automatic save, creation, details, cancel, validation and completion evidence must all survive export.');
+  for (const label of ['form-before-save', 'save-completed', 'Account-created', 'Account-persisted-details', 'dialog-before-cancel', 'dialog-cancelled']) {
+    assert.ok(checkpoints.some(item => item.name.includes(label)), `Missing automatic ${label} checkpoint`);
+  }
+  for (const checkpoint of checkpoints) assert.equal(readFileSync(resolve(directory, checkpoint.source)).subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.ok(result.links.some(link => link.url.endsWith('/lightning/r/Account/001000000000001AAA/view')));
+  continue;
+}
 if (result.name === 'Allure successful UI evidence and retained record links canary') {
   assert.equal(result.status, 'passed');
   const screenshot = result.attachments.find(item => item.name === 'Screenshot of successful UI run');
   assert.ok(screenshot, 'Successful runs require PNG evidence.');
   assert.equal(readFileSync(resolve(directory, screenshot.source)).subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  const checkpoints = result.attachments.filter(item => item.type === 'image/png');
+  assert.equal(checkpoints.length, 3, 'Preserve both business checkpoints and completion evidence.');
+  assert.ok(checkpoints.some(item => item.name.includes('quote-persisted-details')));
+  assert.ok(checkpoints.some(item => item.name.includes('opportunity-persisted-details')));
+  assert.ok(result.attachments.some(item => item.name === 'Detailed attempt log'));
+  for (const checkpoint of checkpoints) assert.equal(readFileSync(resolve(directory, checkpoint.source)).subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
   const retained = result.attachments.find(item => item.name === 'Permanently retained sandbox records');
   assert.ok(retained);
   const records = JSON.parse(readFileSync(resolve(directory, retained.source), 'utf8'));
@@ -37,7 +54,10 @@ assert.ok(result.steps.every(step => step.parameters.some(parameter => parameter
   && step.parameters.some(parameter => parameter.name === 'Locator or target')), 'Retain technical action details underneath readable names.');
 assert.ok(result.steps.some(step => step.status === 'failed' && step.statusDetails.message.includes('ASSERTION_FAILED')));
 const url = new URL(result.links[0].url);
-if (result.name === 'Allure failure evidence canary') assert.equal(url.pathname + url.search, '/lightning/o/Opportunity/list?evidence=canary');
+if (result.name === 'Allure failure evidence canary') {
+  assert.equal(url.pathname + url.search, '/lightning/o/Opportunity/list?evidence=canary');
+  assert.ok(result.attachments.some(item => item.name.includes('opportunity-list-before-failed-assertion')), 'A later failure must not discard earlier checkpoint evidence.');
+}
 else if (result.name === 'Allure nested authentication URL redaction canary') {
   assert.equal(url.pathname, '/msg/maintenanceandavailable.jsp');
   assert.doesNotMatch(url.href, /synthetic-ui-(?:sid|content)-canary/);
@@ -61,5 +81,5 @@ if (result.name === 'Allure Service failure capture before Sales cleanup restora
 }
 }
 for (const name of files.filter(name => /\.(json|txt|properties)$/.test(name))) assert.doesNotMatch(readFileSync(resolve(directory, name), 'utf8'), /synthetic-ui-(otp|checksum|sid|content)-canary/);
-console.log('OK | Failure evidence and successful PNGs with permanent Opportunity/Quote links verified in Allure.');
+console.log('OK | Automatic checkpoint PNGs, pre-failure evidence, failure diagnostics and permanent record links verified in Allure.');
 console.log(`Evidence harness: ${output}`);

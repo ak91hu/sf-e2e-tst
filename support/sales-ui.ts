@@ -12,6 +12,8 @@ import { environment } from './environment.ts';
 import type { OpportunityData } from './data.ts';
 import { UiRecords, type UiRecord, type UiObject } from './ui-records.ts';
 import { choosePicklist } from '../pages/components/picklist.ts';
+import { money } from './visible-values.ts';
+export { money } from './visible-values.ts';
 
 export type SavedRecord = UiRecord & { id: string };
 export type Deal = OpportunityData & { record: SavedRecord; account: SavedRecord };
@@ -19,7 +21,6 @@ export type Fields = Record<string, string | number | boolean>;
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const uiDate = (iso: string) => { const [year, month, day] = iso.split('-'); return `${Number(month)}/${Number(day)}/${year}`; };
 const isoDate = (text: string) => { const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text); if (!match) throw new Error(`Invalid visible date: ${text}`); return `${match[3]}-${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`; };
-export const money = (text: string) => { if (!/^-?\$[\d,]+\.\d{2}$/.test(text)) throw new Error(`Invalid visible USD amount: ${text}`); return Number(text.replace(/[$,]/g, '')); };
 const prefixes: Record<UiObject, string> = { Account: '001', Opportunity: '006', Contract: '800', Quote: '0Q0', Product2: '01t', Pricebook2: '01s', Case: '500' };
 
 export class SalesUi {
@@ -43,6 +44,7 @@ export class SalesUi {
     this.catalog = new CatalogPage(this);
   }
   dialog() { return this.screen.getByRole('dialog', { visible: true }).filter({ has: this.screen.getByRole('button', 'Save', { visible: true }) }); }
+  async evidence(label: string) { await this.app.screenshot(label); }
   confirmation(action = 'Delete') { return this.screen.getByRole('dialog', { visible: true }).filter({ has: this.screen.getByRole('button', action, { visible: true }) }); }
   field(label: string) { return this.dialog().getByLabel(new RegExp(`^\\*?\\s*${escape(label)}$`, 'i'), { visible: true }); }
   async fill(label: string, value: string | number) {
@@ -80,18 +82,22 @@ export class SalesUi {
     await this.app.open(id ? `/lightning/r/${object}/${id}/edit` : `/lightning/o/${object}/new?${query}`); await expect(this.dialog().getByRole('button', 'Save', { visible: true })).toBeVisible();
   }
   private isConfigurationAdministrator() { return Boolean(process.env.SF_USERNAME && environment.username === process.env.SF_USERNAME); }
-  async submit() { await this.dialog().getByRole('button', 'Save').tap(); }
-  async save() { await this.submit(); await expect(this.dialog()).not.toBeVisible(); }
+  async submit() {
+    await this.evidence('form-before-save');
+    await this.dialog().getByRole('button', 'Save').tap();
+  }
+  async save() { await this.submit(); await expect(this.dialog()).not.toBeVisible(); await this.evidence('save-completed'); }
   async cancel() {
+    await this.evidence('dialog-before-cancel');
     const errors = this.screen.getByRole('button', 'Close error dialog', { visible: true }); if (await errors.count()) await errors.tap();
     const dialogs = this.screen.getByRole('dialog', { visible: true }); const cancel = dialogs.getByRole('button', 'Cancel', { visible: true });
-    await expect(cancel).toHaveCount(1); await cancel.tap(); await expect(dialogs).not.toBeVisible();
+    await expect(cancel).toHaveCount(1); await cancel.tap(); await expect(dialogs).not.toBeVisible(); await this.evidence('dialog-cancelled');
   }
   async resolve(record: UiRecord): Promise<SavedRecord> {
     await expect(this.browser).toHaveURL(new RegExp(`/lightning/r/(?:${record.object}/)?${prefixes[record.object]}[A-Za-z0-9]{12,15}/view(?:\\?.*)?$`));
     record.id = new URL(await this.browser.url()).pathname.split('/').at(-2)!; this.owned.persist();
     if (record.object === 'Contract') { const heading = this.screen.getByRole('heading', /^Contract\s+\d+$/, { visible: true }); await expect(heading).toBeVisible(); record.displayName = (await heading.textContent())!.replace(/^Contract\s+/, '').trim(); }
-    this.owned.persist(); return record as SavedRecord;
+    this.owned.persist(); await this.evidence(`${record.object}-created-${record.id}`); return record as SavedRecord;
   }
   async open(record: SavedRecord) {
     if (!this.owned.records.includes(record) || record.deleted) throw new Error('Record is not owned by this attempt.');
@@ -139,7 +145,8 @@ export class SalesUi {
     for (const [label, key] of [['Close Date', 'CloseDate'], ['Contract Start Date', 'StartDate'], ['Contract End Date', 'EndDate'], ['Expiration Date', 'ExpirationDate']]) if (fields[label]) actual[key] = isoDate(fields[label]);
     for (const [label, key] of [['Amount', 'Amount'], ['Subtotal', 'Subtotal'], ['Total Price', 'TotalPrice'], ['Grand Total', 'GrandTotal'], ['Tax', 'Tax'], ['Shipping and Handling', 'ShippingHandling']]) if (fields[label]) actual[key] = money(fields[label]);
     if (fields['Probability (%)']) actual.Probability = Number(fields['Probability (%)'].replace('%', '')); if (fields['Contract Term (months)']) actual.ContractTerm = Number(fields['Contract Term (months)']);
-    if (fields.Syncing) actual.Syncing = fields.Syncing.split('\n')[0] === 'True'; return actual;
+    if (fields.Syncing) actual.Syncing = fields.Syncing.split('\n')[0] === 'True';
+    await this.evidence(`${record.object}-persisted-details-${record.id}`); return actual;
   }
   async assertNameAbsent(object: UiObject, name: string, renamedName?: string) {
     if (!name) throw new Error('UI absence assertion requires an exact owned name.');
@@ -148,6 +155,7 @@ export class SalesUi {
     await expect.poll(async () => await this.browser.evaluate(() => /(?:\b0 items\b|No results found|No records to display|Nothing to see here)/i.test(document.body.innerText))
       || Boolean(renamedName && await this.screen.getByRole('link', renamedName, { exact: true, visible: true }).count()), { timeout: 30_000 }).toBe(true);
     await expect(this.screen.getByRole('link', name, { exact: true, visible: true })).toHaveCount(0);
+    await this.evidence(`${object}-exact-name-absent`);
   }
   async assertAbsent(record: UiRecord) { await this.assertNameAbsent(record.object, record.object === 'Contract' ? record.displayName || record.accountName! : record.name); if (!record.id) this.owned.markDeleted(record); }
   async deleteDialog(record: SavedRecord) {
@@ -156,6 +164,7 @@ export class SalesUi {
     else if (await direct.count() === 1) await direct.tap();
     else { await this.screen.getByRole('button', 'Show more actions', { visible: true }).tap(); await this.screen.getByRole('menuitem', 'Delete', { visible: true }).tap(); }
     await expect(this.confirmation().getByRole('button', 'Delete', { visible: true })).toBeVisible();
+    await this.evidence(`${record.object}-delete-dialog-inspected`);
   }
   async delete(record: SavedRecord) {
     throw new Error(`Deletion forbidden: preserve sandbox ${record.object} ${record.id}.`);

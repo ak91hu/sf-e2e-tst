@@ -9,6 +9,7 @@ export class OpportunityPage {
     await this.ui.app.open('/lightning/o/Opportunity/list');
     await expect(this.ui.browser).toHaveURL(/\/lightning\/o\/Opportunity\/list/);
     await expect(this.ui.screen.getByRole('button', 'New', { visible: true })).toBeVisible();
+    await this.ui.evidence('opportunity-list-create-permission');
   }
   async prepare(account: SavedRecord, label = 'Deal', overrides: Partial<OpportunityData> = {}, omit?: string) {
     const data = { ...opportunityData(account.name, label), stage: environment.stages.initial, ...overrides }; const record = this.ui.owned.claim('Opportunity', data.name);

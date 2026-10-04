@@ -2,7 +2,8 @@
 export class WorkflowPersonas {
   private needsSalesRestoration = false;
 
-  constructor(private readonly login: (persona: 'sales' | 'service') => Promise<void>) {}
+  private readonly login: (persona: 'sales' | 'service') => Promise<void>;
+  constructor(login: (persona: 'sales' | 'service') => Promise<void>) { this.login = login; }
 
   async service() {
     this.needsSalesRestoration = true;

@@ -23,7 +23,7 @@ Automated Salesforce Lightning regression with TesterArmy e2e, TypeScript and Ch
 
 **Every created sandbox test record remains permanently.** Opportunity and Quote deletion is forbidden, and supporting Accounts, Contracts, Cases, Products and Price Books also remain. Deletion dialogs are inspected only when cancelled. Automatic teardown performs no deletion; both the legacy recovery command and direct record deletion are blocked.
 
-**Successful Allure results include a redacted PNG screenshot and direct Salesforce links to every saved record created by the case.** The retained-records JSON attachment and permanent `.e2e-data` journal preserve exact names, IDs and URLs. Failed results retain their detailed logs, original failure URL and automatic failure screenshot.
+**Allure results include multiple redacted PNG screenshots as evidence and direct Salesforce links to every saved record created by the case.** Named checkpoints capture filled forms before Save, completed saves, created records, persisted Details, dialogs before cancellation (including validation errors), cancellation outcomes and permission checks. Authentication setups capture the authenticated list and verified persona. Every case keeps its completion PNG and detailed attempt log; failures also retain all earlier checkpoints, the original failure URL and automatic failure screenshot. The retained-records JSON attachment and permanent `.e2e-data` journal preserve exact names, IDs and URLs.
 
 Previous executions are historical evidence for earlier suite versions; they do not prove a complete 100-result run. Current checks and completed live execution evidence belong in [VERIFICATION.md](docs/VERIFICATION.md). [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Published Allure](https://sf-e2e-tst-allure-ak91hu.netlify.app) · [Test design wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
@@ -57,6 +57,8 @@ Older review and execution documents describe historical cleanup behavior. The c
 
 `npm run test:all` and CI select all 100 results, including the three AI UI cases. `npm run test:regression` selects 95 standard cases plus two setups, 97 results, without model access. Filtered reports contain only selected cases and their dependencies. `design:check` verifies the exact full-suite count.
 
+Separate from the 100 Salesforce UI results, **45 unit tests and 15 reporting integration tests** run without Salesforce or model access. Unit coverage includes UTC/leap-year date boundaries, persona calendar dates, fixture uniqueness, USD parsing, retention/rename guards, persona restoration, JWT authentication, redaction and readable report steps. Reporting integration tests exercise the real Allure SDK and filesystem: named PNG attachments, earlier evidence on failures, separate retry journals, selection/skips, redaction filtering, large PNGs, path containment and retained-record link validation. These checks do not add synthetic results to the live Salesforce report.
+
 ## Quick start
 
 Use Node.js 26.10.0 and npm 12.2.0; the supported runtime minimum is Node 24. Copy `.env.example` to `.env` and configure the preauthorized personas, Consumer Key and RSA private key using [AUTH_SETUP.md](docs/AUTH_SETUP.md).
@@ -67,6 +69,7 @@ npm run install:browsers
 npm run doctor
 npm run typecheck
 npm run test:unit
+npm run test:reporting
 npm run pom:check
 npm run design:check
 npm run wiki:check
@@ -91,6 +94,8 @@ Dates entered relative to today use UTC; Salesforce's automatic Closed Won date 
 | Command | Purpose |
 | --- | --- |
 | `npm run test:all` | All 100 UI results in one report, including AI. |
+| `npm run test:checks` | All 45 unit and 15 reporting integration tests, without Salesforce credentials. |
+| `npm run test:unit` / `test:reporting` | Run either non-E2E test layer separately. |
 | `npm run test:regression` | 97 standard UI results without a model. |
 | `npm run test:list` | Collect standard cases and dependencies. |
 | `npm run test:e2e -- --grep SF-OPP-018` | Run one selected case and its setup. |
@@ -110,11 +115,11 @@ Tests call page objects in `pages/`; shared UI operations live in `support/sales
 
 Default results: `.e2e/report.json`, `junit.xml`, `summary.md`; redacted evidence: `.e2e/artifacts`; SDK results: `.e2e/allure-results/<run-id>`; generated HTML: `allure-report/index.html`. The current manifest verifies run identity and counts. A custom `--output` directory keeps validation evidence separate from previous runs.
 
-Open a successful result for **Screenshot of successful UI run**, **Permanently retained sandbox records**, and direct Account/Opportunity/Quote/other record links. Cases that create no records have a completion PNG and an empty retained-record manifest. Authentication setups have persona-verification PNGs. Failed results preserve **Detailed attempt log**, **Failure URL** and **Screenshot at failure**.
+Open a result for named **UI evidence: ...** checkpoints, **Detailed attempt log**, **Permanently retained sandbox records**, and direct Account/Opportunity/Quote/other record links. Successful cases also have **Screenshot of successful UI run**; the full-run verifier requires at least two PNGs per successful case/setup. Cases that create no records keep an empty retained-record manifest. Failed results preserve all checkpoint PNGs plus **Failure URL** and **Screenshot at failure**. Checkpoint filenames include their capture order and distinguish repeated saves/reads. PNGs are retained even when larger than 4 MiB; incomplete or unredacted artifacts are excluded.
 
 `report:verify-retention` requires 100 passed results by default. Use `--evidence-only` with a full-run output directory to verify successful evidence in a failed run while preserving its original failed statuses and exit code.
 
-The evidence harness uses intercepted browser pages and no Salesforce data. Three intentional failure probes validate existing diagnostics; one successful probe validates PNGs and exact retained Opportunity/Quote links. Its wrapper passes only when all evidence checks succeed.
+The evidence harness uses intercepted browser pages and no Salesforce data. Three intentional failure probes validate diagnostics and pre-failure evidence; two successful probes verify exact retained record links and automatic page-object screenshots for Save, persisted Details, cancellation and required-field validation. Its wrapper passes only when all evidence checks succeed. Reporting integration evidence remains under `.validation/reporting-tests`; browser evidence remains under `.validation/allure-failure-harness`.
 
 Before Save, every fixture receives a unique `E2E-TA-` name and permanent journal entry. Teardown never deletes saved records, even after a failure. Unsaved cancelled or rejected forms can be marked absent only after UI proof. `npm run data:recover` is disabled and fails explicitly; never run external cleanup or delete supporting parents, which could cascade to retained records.
 

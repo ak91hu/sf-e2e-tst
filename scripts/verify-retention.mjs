@@ -15,8 +15,9 @@ const results = readdirSync(directory).filter(name => name.endsWith('-result.jso
 let records = 0;
 for (const result of results) {
   if (result.status !== 'passed') continue;
-  const screenshots = result.attachments.filter(item => item.name === 'Screenshot of successful UI run');
-  assert.ok(screenshots.length, `Missing successful PNG: ${result.name}`);
+  const screenshots = result.attachments.filter(item => item.type === 'image/png');
+  assert.ok(screenshots.length >= 2, `Expected checkpoint and completion PNGs: ${result.name}`);
+  assert.ok(screenshots.some(item => item.name === 'Screenshot of successful UI run'), `Missing completion PNG: ${result.name}`);
   for (const screenshot of screenshots) assert.equal(readFileSync(resolve(directory, screenshot.source)).subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
   if (/^SF-AUTH(?: |\-SERVICE )/.test(result.name)) continue;
   const attachment = result.attachments.find(item => item.name === 'Permanently retained sandbox records');

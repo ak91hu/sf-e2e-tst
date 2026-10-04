@@ -37,6 +37,7 @@ jobs:
       - run: npm run install:browsers -- --with-deps
       - run: npm run typecheck
       - run: npm run test:unit
+      - run: npm run test:reporting
       - run: npm run pom:check
       - run: npm run design:check
       - run: npm run wiki:check

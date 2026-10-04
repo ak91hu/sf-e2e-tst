@@ -8,9 +8,11 @@ export class ServicePage {
     await this.ui.app.open('/lightning/o/Opportunity/list');
     await expect(this.ui.screen.getByPlaceholder(/Search this list/i, { visible: true })).toBeVisible();
     await expect(this.ui.screen.getByRole('button', 'New', { visible: true })).toHaveCount(0);
+    await this.ui.evidence('service-opportunity-create-action-absent');
     await this.ui.app.open('/lightning/o/Opportunity/new');
     await expect(this.ui.screen.getByText(/(?:insufficient privileges|don't have the necessary privileges|don't have access|do not have access|don't have permission|do not have permission)/i, { visible: true }).first()).toBeVisible();
     await expect(this.ui.dialog()).not.toBeVisible();
+    await this.ui.evidence('service-opportunity-create-access-denied');
   }
   async createCase(account: SavedRecord) {
     const record = this.ui.owned.claim('Case', uniqueName('ServiceCase'));

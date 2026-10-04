@@ -4,6 +4,41 @@ import { UiRecords } from '../support/ui-records.ts';
 
 class JournalProbe extends UiRecords { override persist() {} }
 
+test('Unprefixed business names are rejected before entering the attempt journal', () => {
+  const owned = new JournalProbe();
+  assert.throws(() => owned.claim('Opportunity', 'Customer renewal'), /test prefix/);
+  assert.deepEqual(owned.records, []);
+});
+
+test('Repeated renames retain every unique earlier name and the saved record ID', () => {
+  const owned = new JournalProbe();
+  const record = owned.claim('Quote', 'E2E-TA-A'); record.id = '0Q0000000000001AAA';
+  owned.rename(record, 'E2E-TA-B'); owned.rename(record, 'E2E-TA-A'); owned.rename(record, 'E2E-TA-C');
+  assert.deepEqual(record.previousNames, ['E2E-TA-A', 'E2E-TA-B']);
+  assert.equal(record.id, '0Q0000000000001AAA');
+  assert.equal(record.marker, 'E2E-TA-C');
+  assert.equal(record.displayName, 'E2E-TA-C');
+});
+
+test('Only UI-verified unsaved forms can be marked absent', () => {
+  const owned = new JournalProbe();
+  const cancelled = owned.claim('Quote', 'E2E-TA-Cancelled');
+  owned.markDeleted(cancelled);
+  const saved = owned.claim('Quote', 'E2E-TA-Saved'); saved.id = '0Q0000000000001AAA';
+  assert.throws(() => owned.markDeleted(saved), /never be deleted/);
+  assert.equal(cancelled.deleted, true);
+  assert.equal(saved.deleted, false);
+});
+
+test('Supporting records and unsaved Opportunities cannot be reconciled as saved renames', () => {
+  const owned = new JournalProbe();
+  const account = owned.claim('Account', 'E2E-TA-Account'); account.id = '001000000000001AAA';
+  assert.throws(() => owned.rename(account, 'E2E-TA-NewAccount'));
+  assert.throws(() => owned.reconcileName(account, account.name));
+  const unsaved = owned.claim('Opportunity', 'E2E-TA-Unsaved');
+  assert.throws(() => owned.reconcileName(unsaved, unsaved.name));
+});
+
 test('Teardown never removes saved sandbox fixtures or their supporting records', async () => {
   let removals = 0;
   const owned = new JournalProbe(async () => { removals++; });

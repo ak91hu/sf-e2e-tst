@@ -19,6 +19,10 @@ test('Generated Allure HTML renders in Chromium', async ({ app, browser, screen 
       await expect(design.getByText(/^TesterArmy e2e UI test\. Source:.*Cleanup:/)).toBeVisible();
     } else if (process.env.E2E_REPORT_SUCCESS) {
       await expect(screen.getByText('Screenshot of successful UI run', { exact: true }).first()).toBeVisible();
+      if (process.env.E2E_REPORT_CASE === 'Allure successful UI evidence and retained record links canary') {
+        await expect(screen.getByText(/^UI evidence: .*quote-persisted-details$/, { exact: true })).toBeVisible();
+        await expect(screen.getByText(/^UI evidence: .*opportunity-persisted-details$/, { exact: true })).toBeVisible();
+      }
       await expect(screen.getByText('Permanently retained sandbox records', { exact: true })).toBeVisible();
       await expect(screen.getByRole('link', /^Opportunity: E2E-TA-/).first()).toBeVisible();
       await expect(screen.getByRole('link', /^Quote: E2E-TA-/).first()).toBeVisible();
