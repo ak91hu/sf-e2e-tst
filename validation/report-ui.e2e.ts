@@ -17,12 +17,17 @@ test('Generated Allure HTML renders in Chromium', async ({ app, browser, screen 
       await expect(design.getByText(/^Data:/)).toBeVisible();
       await expect(design.getByText(/Expected:/).first()).toBeVisible();
       await expect(design.getByText(/^TesterArmy e2e UI test\. Source:.*Cleanup:/)).toBeVisible();
+    } else if (process.env.E2E_REPORT_SUCCESS) {
+      await expect(screen.getByText('Screenshot of successful UI run', { exact: true }).first()).toBeVisible();
+      await expect(screen.getByText('Permanently retained sandbox records', { exact: true })).toBeVisible();
+      await expect(screen.getByRole('link', /^Opportunity: E2E-TA-/).first()).toBeVisible();
+      await expect(screen.getByRole('link', /^Quote: E2E-TA-/).first()).toBeVisible();
     } else {
       await expect(screen.getByText('Detailed attempt log', { exact: true })).toBeVisible();
       await expect(screen.getByText('Failure URL', { exact: true })).toBeVisible();
       await expect(screen.getByText('Screenshot at failure', { exact: true })).toBeVisible();
     }
-    console.log({ case: process.env.E2E_REPORT_CASE, evidence: process.env.E2E_REPORT_DESIGN ? 'Visible test design verified' : 'Failure log, URL and screenshot verified' });
+    console.log({ case: process.env.E2E_REPORT_CASE, evidence: process.env.E2E_REPORT_DESIGN ? 'Visible test design verified' : process.env.E2E_REPORT_SUCCESS ? 'Successful PNG and permanent Opportunity/Quote links verified' : 'Failure log, URL and screenshot verified' });
   }
   await app.screenshot('allure-report-rendered');
 });

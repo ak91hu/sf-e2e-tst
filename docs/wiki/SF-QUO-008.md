@@ -1,4 +1,4 @@
-# SF-QUO-008 — Confirm Quote deletion through UI
+# SF-QUO-008 — Preserve Quote and Opportunity across repeated navigation
 
 [All test designs](https://github.com/ak91hu/sf-e2e-tst/wiki) · [Executable source](https://github.com/ak91hu/sf-e2e-tst/blob/main/tests/quote.e2e.ts) · [Allure report](https://sf-e2e-tst-allure-ak91hu.netlify.app)
 
@@ -19,8 +19,8 @@ The following steps define expected behavior. Execution status is recorded in Al
 | 5. Save the Opportunity and open Details after fresh navigation. | Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity. | Name, amount, date, Stage and description match; the Account link targets the owned Account ID; Owner and Created By are E2E Sales Manager. |
 | 6. Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Save and entered fields are visible; the owned Opportunity is prefilled. |
 | 7. Save the Quote and open fresh Details. | Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description. | Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager. |
-| 8. Open Delete and confirm Delete. | Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. | The dialog closes; Salesforce leaves the Quote URL. |
-| 9. Search for the exact Quote name. | Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. | No match; deleted = true in the journal. |
-| 10. Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms. | This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account. | The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery. |
+| 8. Read the parent Opportunity with all field and ownership assertions. | Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. | Original parent fields persist. |
+| 9. Return to fresh Quote Details and verify the relationship link. | Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture. | Same Quote ID; original name, Draft status and exact Opportunity link persist. |
+| 10. Preserve every created sandbox record; publish exact record links and capture a redacted completion PNG. | Exact saved record IDs and names; permanent .e2e-data journal; redacted PNG and retained-records.json in this attempt’s artifacts. | No records are deleted, including supporting Accounts, Contracts, Cases and catalogue data. Successful Allure results contain a PNG and links to every saved record; journals remain permanently. |
 
 Generated from [docs/test-design.ts](https://github.com/ak91hu/sf-e2e-tst/blob/main/docs/test-design.ts). Update the source, then run `npm run design:generate` and `npm run wiki:generate`.

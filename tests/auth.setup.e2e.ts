@@ -12,6 +12,7 @@ test.setup('SF-AUTH | Salesforce JWT → Lightning session', {
   try {
     await openSalesforceSession(app, screen, browser, 'sales', salesforceAuth);
     await verifySalesforcePersona(screen, 'sales');
+    await app.screenshot('sales-authentication-success');
     await session.save('salesforce');
   } finally { resetUiBridge(); }
 });
@@ -20,6 +21,6 @@ test.setup('SF-AUTH-SERVICE | Service Manager JWT → Lightning session', {
   sessions: ['service'], timeout: 150_000,
 }, async ({ app, screen, browser, session, salesforceAuth }) => {
   resetUiBridge();
-  try { await openSalesforceSession(app, screen, browser, 'service', salesforceAuth); await verifySalesforcePersona(screen, 'service'); await session.save('service'); }
+  try { await openSalesforceSession(app, screen, browser, 'service', salesforceAuth); await verifySalesforcePersona(screen, 'service'); await app.screenshot('service-authentication-success'); await session.save('service'); }
   finally { resetUiBridge(); }
 });

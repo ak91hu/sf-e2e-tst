@@ -59,13 +59,7 @@ Sales and Service have separate setup sessions. Switching roles clears browser s
 
 Required authentication secrets: `SF_SALES_USERNAME`, `SF_SERVICE_USERNAME`, `SF_CLIENT_ID`, `SF_JWT_PRIVATE_KEY` containing complete PEM with actual line breaks. Administrator credentials, passwords, email codes and model keys are unnecessary. Renew the certificate, application certificate and CI key before expiry. `auth:keys` does not overwrite an existing private key.
 
-Targeted recovery uses exact owned journals and UI deletion:
-
-```powershell
-npm run data:recover -- .e2e-data/<exact-attempt-journal>.json
-```
-
-The script accepts existing workspace attempt journal paths, not a broad prefix. Standard records use Sales; Cases use Service. Recovery must not overlap a live regression. A separate process override can recover older administrator-owned investigation records without changing the normal business user; Opportunity creation still rejects administrators.
+All created sandbox test records remain permanently, including Opportunity, Quote and their supporting records. Automatic cleanup, direct deletion and targeted destructive recovery are disabled. Use exact `.e2e-data` journals and Allure record links for inspection. Never delete supporting parents, which can cascade to retained records. Opportunity creation still rejects administrators.
 
 Verification commands: `npm run test:unit`, `npm run test:auth-harness`, `npm run test:evidence-harness`, `npm run test:auth`. Synthetic harnesses intercept all requests and verify Secret fallback, native login, maintenance redirects, redacted text and automatic screenshot availability. The live authentication test proves actual Salesforce access.
 

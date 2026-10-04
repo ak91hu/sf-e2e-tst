@@ -42,6 +42,7 @@
     "wiki:generate": "node scripts/wiki-design.mjs",
     "wiki:check": "node scripts/wiki-design.mjs --check",
     "test:evidence-harness": "node scripts/evidence-harness.mjs",
+    "report:verify-retention": "node scripts/verify-retention.mjs",
     "test:report-ui": "node scripts/report-ui-harness.mjs",
     "allure:generate": "node scripts/allure-report.mjs",
     "allure:open": "allure open allure-report",

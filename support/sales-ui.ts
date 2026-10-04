@@ -29,7 +29,7 @@ export class SalesUi {
   readonly quotes: QuotePage;
   readonly service: ServicePage;
   readonly catalog: CatalogPage;
-  readonly owned = new UiRecords(record => this.cleanupRecord(record));
+  readonly owned = new UiRecords();
   readonly app: App;
   constructor(app: App, readonly screen: Screen, readonly browser: Browser) {
     // Lightning is ready when its DOM and the expected controls are ready.
@@ -50,7 +50,11 @@ export class SalesUi {
     if (typeof value === 'number' && await field.inputValue()) {
       // Salesforce smart-number inputs can retain the previous value when a
       // synthetic fill replaces it. Real selection/deletion updates their model.
-      await field.focus(); await field.press('ControlOrMeta+A'); await field.press('Backspace'); await expect(field).toHaveValue('');
+      await field.focus();
+      // Keep both keys on the focused input. Resolving a Lightning locator
+      // again between select-all and Backspace can reset the selection.
+      await this.browser.keyboard.press('ControlOrMeta+A'); await this.browser.keyboard.press('Backspace');
+      await expect(field).toHaveValue('');
     }
     await field.fill(String(value));
     if (typeof value === 'number') {
@@ -58,6 +62,7 @@ export class SalesUi {
       // Compare the visible numeric value, rejecting empty/malformed input.
       await expect.poll(async () => {
         const actual = (await field.inputValue()).trim();
+        if (label === 'Probability (%)' && /^\d+(?:\.\d+)?%$/.test(actual)) return Number(actual.slice(0, -1));
         return /^-?\$?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/.test(actual)
           ? Number(actual.replace(/[$,]/g, '')) : Number.NaN;
       }).toBe(value);
@@ -153,27 +158,6 @@ export class SalesUi {
     await expect(this.confirmation().getByRole('button', 'Delete', { visible: true })).toBeVisible();
   }
   async delete(record: SavedRecord) {
-    await this.deleteDialog(record); await this.confirmation().getByRole('button', 'Delete').tap(); await expect(this.confirmation()).not.toBeVisible();
-    // Wait for Salesforce's own post-delete navigation before opening the list.
-    await expect(this.browser).not.toHaveURL(new RegExp(record.id));
-    await this.assertAbsent(record); this.owned.markDeleted(record);
-  }
-  private async cleanupRecord(record: UiRecord) {
-    const close = this.screen.getByRole('button', 'Cancel and close', { visible: true }); if (await close.count() === 1) { await close.tap(); await expect(close).not.toBeVisible(); }
-    const errors = this.screen.getByRole('button', 'Close error dialog', { visible: true }); if (await errors.count()) await errors.tap(); const cancel = this.screen.getByRole('dialog', { visible: true }).getByRole('button', 'Cancel', { visible: true }); if (await cancel.count() === 1) await cancel.tap();
-    if (record.id) {
-      if (record.previousNames?.length) {
-        // The edit may have failed before Save or after Save. Reconcile only
-        // exact journaled names on this exact owned ID, never by prefix search.
-        await this.app.open(`/lightning/r/${record.object}/${record.id}/view`);
-        await expect(this.browser).toHaveURL(new RegExp(`/lightning/r/${record.object}/${record.id}/view(?:\\?.*)?$`));
-        const names = [record.name, ...record.previousNames].map(escape).join('|');
-        const heading = this.screen.getByRole('heading', new RegExp(`^(?:${record.object}\\s+)?(${names})$`), { visible: true });
-        await expect(heading).toBeVisible();
-        const visibleName = (await heading.textContent())!.replace(new RegExp(`^${record.object}\\s+`), '').trim();
-        this.owned.reconcileName(record, visibleName);
-      }
-      await this.delete(record as SavedRecord);
-    } else await this.assertAbsent(record);
+    throw new Error(`Deletion forbidden: preserve sandbox ${record.object} ${record.id}.`);
   }
 }

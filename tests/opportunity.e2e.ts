@@ -52,8 +52,12 @@ test.describe('Salesforce Opportunity regression', { session: 'salesforce', tags
     const account = await sales.accounts.create(); const deal = await sales.opportunities.create(account, 'CancelDelete');
     await sales.deleteDialog(deal.record); await sales.cancel(); await sales.opportunities.assert(deal);
   });
-  test('SF-OPP-011 | Confirm UI deletion', { tags: ['smoke', 'delete'] }, async ({ sales }) => {
-    const account = await sales.accounts.create(); const deal = await sales.opportunities.create(account, 'Delete'); await sales.delete(deal.record);
+  test('SF-OPP-011 | Preserve Opportunity and its Quote after cancelled deletion', { tags: ['smoke', 'retention'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'RetainedDeal');
+    const quote = await sales.quotes.create(deal);
+    await sales.deleteDialog(deal.record); await sales.cancel(); await sales.opportunities.assert(deal);
+    expect(await sales.read(quote.record)).toMatchObject({ Name: quote.record.name, OpportunityName: deal.name, Status: 'Draft' });
+    await sales.quotes.assertOpportunityLink(deal);
   });
   for (const [id, amount] of [['012', 0], ['013', 0.01]] as const) {
     test(`SF-OPP-${id} | Persist amount: ${amount}`, { tags: ['amount'] }, async ({ sales }) => {
@@ -80,5 +84,73 @@ test.describe('Salesforce Opportunity regression', { session: 'salesforce', tags
       await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Amount', amount); await sales.save();
       deal = { ...deal, amount }; await sales.opportunities.assert(deal);
     }
+  });
+  for (const [id, description] of [['018', ''], ['019', 'First line: áéőű\nSecond line: delivery & support.']] as const) {
+    test(`SF-OPP-${id} | Persist ${description ? 'multiline Unicode' : 'empty'} description`, { tags: ['edit', 'description'] }, async ({ sales }) => {
+      let deal = await sales.opportunities.create(await sales.accounts.create(), 'Description');
+      await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Description', description); await sales.save();
+      deal = { ...deal, description }; await sales.opportunities.assert(deal);
+    });
+  }
+  test('SF-OPP-020 | Edit Amount to a small decimal while preserving other fields', { tags: ['edit', 'amount'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'SmallAmountEdit');
+    await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Amount', 42.42); await sales.save();
+    await sales.opportunities.assert({ ...deal, amount: 42.42 });
+  });
+  for (const [id, days] of [['021', 0], ['022', 365]] as const) {
+    test(`SF-OPP-${id} | Persist Close Date ${days === 0 ? 'today' : 'one year ahead'}`, { tags: ['date', 'boundary'] }, async ({ sales }) => {
+      const deal = await sales.opportunities.create(await sales.accounts.create(), 'CloseDateBoundary', { closeDate: futureDate(days) });
+      await sales.opportunities.assert(deal);
+    });
+  }
+  test('SF-OPP-023 | Persist a manually entered probability', { tags: ['edit', 'probability'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'ManualProbability');
+    await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Probability (%)', 37); await sales.save();
+    await sales.opportunities.assert(deal, 37);
+  });
+  test('SF-OPP-024 | Persist Unicode Next Step', { tags: ['edit'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'NextStep'); const next = 'Árajánlat egyeztetés & follow-up';
+    await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Next Step', next); await sales.save();
+    expect((await sales.opportunities.assert(deal))['Next Step']).toBe(next);
+  });
+  test('SF-OPP-025 | Clear a previously saved Unicode Next Step', { tags: ['expansion-100', 'edit'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'ClearNextStep');
+    for (const next of ['Árajánlat egyeztetés & follow-up', '']) {
+      await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Next Step', next); await sales.save();
+      expect((await sales.opportunities.assert(deal))['Next Step']).toBe(next);
+    }
+  });
+  test('SF-OPP-026 | Cancel a manual probability change', { tags: ['expansion-100', 'cancel', 'probability'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'CancelProbability'); const original = await sales.opportunities.assert(deal);
+    await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Probability (%)', 73); await sales.cancel();
+    await sales.opportunities.assert(deal, Number(original.Probability));
+  });
+  for (const [id, probability] of [['027', 0], ['028', 100]] as const) {
+    test(`SF-OPP-${id} | Persist ${probability}% probability on an open Opportunity`, { tags: ['expansion-100', 'probability', 'boundary'] }, async ({ sales }) => {
+      const deal = await sales.opportunities.create(await sales.accounts.create(), 'ProbabilityBoundary');
+      await sales.form('Opportunity', {}, deal.record.id); await sales.fill('Probability (%)', probability); await sales.save();
+      await sales.opportunities.assert(deal, probability);
+    });
+  }
+  test('SF-OPP-029 | Cancel a Close Date change', { tags: ['expansion-100', 'cancel', 'date'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'CancelCloseDate');
+    await sales.form('Opportunity', {}, deal.record.id); await sales.date('Close Date', futureDate(90)); await sales.cancel(); await sales.opportunities.assert(deal);
+  });
+  test('SF-OPP-030 | Edit an open Opportunity Close Date into the past', { tags: ['expansion-100', 'edit', 'date'] }, async ({ sales }) => {
+    const deal = await sales.opportunities.create(await sales.accounts.create(), 'EditPastCloseDate'); const closeDate = futureDate(-30);
+    await sales.form('Opportunity', {}, deal.record.id); await sales.date('Close Date', closeDate); await sales.save(); await sales.opportunities.assert({ ...deal, closeDate });
+  });
+  for (const [id, field, value] of [['031', 'Order Number', 'ORD-ÁR01'], ['032', 'Main Competitor(s)', 'Versenytárs őű & partner'], ['033', 'Tracking Number', 'TRACK-100-A1']] as const) {
+    test(`SF-OPP-${id} | Persist ${field}`, { tags: ['expansion-100', 'edit'] }, async ({ sales }) => {
+      const deal = await sales.opportunities.create(await sales.accounts.create(), 'AdditionalField');
+      await sales.form('Opportunity', {}, deal.record.id); await sales.fill(field, value); await sales.save();
+      expect((await sales.opportunities.assert(deal))[field]).toBe(value);
+    });
+  }
+  test('SF-OPP-034 | Isolate edits between two Opportunities sharing an Account', { tags: ['expansion-100', 'relationships'] }, async ({ sales }) => {
+    const account = await sales.accounts.create(); const first = await sales.opportunities.create(account, 'FirstDeal'); const second = await sales.opportunities.create(account, 'SecondDeal');
+    const updated = { ...first, amount: 456.78, closeDate: futureDate(75) };
+    await sales.form('Opportunity', {}, first.record.id); await sales.fill('Amount', updated.amount); await sales.date('Close Date', updated.closeDate); await sales.save();
+    expect(first.record.id).not.toBe(second.record.id); await sales.opportunities.assert(updated); await sales.opportunities.assert(second);
   });
 });

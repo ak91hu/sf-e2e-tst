@@ -3,6 +3,24 @@ import { test } from '../support/auth-engine.ts';
 import { environment } from '../support/environment.ts';
 import { test as coreTest } from '../support/core-fixtures.ts';
 import { WorkflowPersonas } from '../support/workflow-personas.ts';
+import assert from 'node:assert/strict';
+
+coreTest('Allure successful UI evidence and retained record links canary', async ({ browser, screen, sales, app }) => {
+  sales.owned.persist = () => {}; // Synthetic probe must not create sandbox journals.
+  await browser.route('**/*', route => route.fulfill({ headers: { 'Content-Type': 'text/html' }, body: '<title>Retained Salesforce records</title><h1>Opportunity and Quote preserved</h1>' }));
+  let deletionActions = 0;
+  sales.deleteDialog = async () => { deletionActions++; };
+  for (const object of ['Account', 'Contract', 'Case', 'Product2', 'Pricebook2'] as const) {
+    await assert.rejects(sales.delete({ object, name: `E2E-TA-${object}`, marker: 'synthetic', id: '001000000000001AAA', deleted: false }), /Deletion forbidden/);
+  }
+  for (const [object, id] of [['Opportunity', '006000000000001AAA'], ['Quote', '0Q0000000000001AAA']] as const) {
+    const record = sales.owned.claim(object, `E2E-TA-Retained${object}`); record.id = id;
+    await assert.rejects(sales.delete({ ...record, id }), /Deletion forbidden/);
+  }
+  assert.equal(deletionActions, 0, 'Retention guard must reject deletion before opening any UI action.');
+  await app.open('/lightning/r/Quote/0Q0000000000001AAA/view');
+  await expect(screen.getByRole('heading', 'Opportunity and Quote preserved')).toBeVisible();
+});
 
 // Intentional infrastructure canary, excluded from Salesforce regression.
 // Every request is intercepted; no business data or org request is involved.

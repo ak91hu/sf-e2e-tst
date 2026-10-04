@@ -9,4 +9,6 @@
 - [Component version audit](VERSIONS.md)
 - [Execution evidence](VERIFICATION.md)
 
+There are 100 executable case/setup designs with 883 explicit Action / Data / Expected output steps and 102 generated wiki pages. All created sandbox records remain permanently; successful executions include PNG evidence and exact record links.
+
 The editable design source is [test-design.ts](test-design.ts). The repository entry point is [README.md](../README.md).

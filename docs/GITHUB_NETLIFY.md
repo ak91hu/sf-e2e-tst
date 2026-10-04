@@ -2,7 +2,7 @@
 
 [Repository](https://github.com/ak91hu/sf-e2e-tst) · [Actions](https://github.com/ak91hu/sf-e2e-tst/actions/workflows/salesforce-regression.yml) · [Netlify Allure](https://sf-e2e-tst-allure-ak91hu.netlify.app) · [Wiki](https://github.com/ak91hu/sf-e2e-tst/wiki).
 
-Repository owner and commit author: **ak91hu**. Default branch: `main`. Actions executes UI regression; Netlify serves the generated static report. Seven secrets and thirteen configuration variables are configured. **Run tests** executes all 55 results, including the three AI UI cases, in one report. The completed [run 37115961793](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37115961793) passed **55/55**, with zero retries, and deployed its matching report. All 51 owned-record journals show complete UI cleanup; see [verification](VERIFICATION.md) for the source commit and publication checks.
+Repository owner and commit author: **ak91hu**. Default branch: `main`. The updated **Run tests** workflow selects **100 UI results: 98 cases and two setups**, including three AI UI cases. Every created sandbox record remains permanently. Successful results include PNGs and exact record links; a dedicated verification step checks them. The historical [run 37115961793](https://github.com/ak91hu/sf-e2e-tst/actions/runs/37115961793) passed the former **55-result suite**. Pushing this source updates the remote workflow; the separate wiki requires publication and the public report updates after an actual CI run and deployment. See [verification](VERIFICATION.md) for completed local evidence.
 
 ## Repository secrets and variables
 
@@ -42,7 +42,7 @@ Deployment uses `--prod --no-build`. Current `.e2e/report.json` and HTML run-man
 | Trigger / step | Behavior |
 | --- | --- |
 | Pull request | Credential-free TypeScript, unit, POM/design/wiki, synthetic auth and failure-evidence checks. |
-| Source push to `main`, manual default-branch dispatch, weekdays 02:00 UTC | **Run tests**: source checks, then all 55 results using `npm run test:all`, one worker and zero retries. Shared concurrency queues runs. |
+| Source push to `main`, manual default-branch dispatch, weekdays 02:00 UTC | **Run tests**: source checks, then all 100 results using `npm run test:all`, one worker and zero retries; verify successful PNGs and permanent record links. Shared concurrency queues runs. |
 | Failed business test | Regression and job remain red; the completed current run still gets Allure generation and Netlify publication. |
 | Missing/current-run mismatch | Report generation/deployment fails; stale or empty reports are rejected. |
 | History | Restore JSONL from Actions cache; save under a unique run key, retaining 20 history entries. |
@@ -61,15 +61,15 @@ The workflow configures the saved ChatGPT login from `E2E_OAUTH_CREDENTIALS` int
 
 ## Failure debugging
 
-Open a failed/broken test in Allure. Executed steps include locator, duration, status and error. Attachments include **Detailed attempt log**, **Failure URL**, **Screenshot at failure** and available **Redacted UI evidence**. **URL at failure** points to the actual pre-cleanup page; cleanup may subsequently delete the record. Its screenshot and semantic log preserve the failure state.
+Open a failed/broken test in Allure. Executed steps include locator, duration, status and error. Attachments include **Detailed attempt log**, **Failure URL**, **Screenshot at failure** and available **Redacted UI evidence**. **URL at failure** points to the actual failure page; created records remain permanently. Successful results contain **Screenshot of successful UI run**, **Permanently retained sandbox records** and exact record links.
 
 Descriptions include per-step **Action / Data / Expected output**. Browser-startup failures cannot have UI screenshots. Original Secret-fill screenshot suppression remains active during initial password bootstrap; normal native JWT business sessions support automatic screenshots. Trace/video are disabled.
 
-`npm run test:evidence-harness` deliberately fails three isolated synthetic assertions. The wrapper passes only when failed status, detailed logs, exact URLs, automatic valid PNGs and credential redaction are verified. These results are never merged into the normal regression report/history.
+`npm run test:evidence-harness` deliberately fails three isolated synthetic assertions and passes one synthetic successful UI probe. The wrapper validates failure diagnostics, redaction, successful PNGs, exact retained Opportunity/Quote links and rejection of deletion before UI actions. These results are never merged into the normal regression report/history.
 
 ## Wiki publication and maintenance
 
-The wiki is a separate Git repository. All **57 generated pages** are maintained under `docs/wiki`: 55 case/setup designs, Home and sidebar. Each case includes preparation and cleanup with exactly **Action**, **Data** and **Expected output** columns.
+The wiki is a separate Git repository. All **102 generated pages** are maintained under `docs/wiki`: 100 case/setup designs, Home and sidebar. Each case includes preparation and permanent retention evidence with exactly **Action**, **Data** and **Expected output** columns.
 
 ```powershell
 npm run design:generate
@@ -83,6 +83,6 @@ git -C <local-wiki-directory> commit -m "Update Salesforce UI test designs"
 git -C <local-wiki-directory> push
 ```
 
-The wiki is published: the published remote Markdown pages match the generated sources, and a rendered case page contains the requested three columns. For another uninitialized wiki, first save Home through GitHub's editor before cloning. Avoid editing generated files directly; change `docs/test-design.ts` and regenerate so Allure, consolidated designs and wiki remain consistent. Wiki publication does not trigger the Salesforce regression workflow.
+The previous wiki publication covered the former suite. The 102 current source pages must be published separately. For an uninitialized wiki, first save Home through GitHub's editor before cloning. Avoid editing generated files directly; change `docs/test-design.ts` and regenerate so Allure, consolidated designs and wiki remain consistent. Wiki publication does not trigger the Salesforce regression workflow.
 
 Sources: [GitHub wiki editing](https://docs.github.com/en/communities/documenting-your-project-with-wikis/adding-or-editing-wiki-pages), [e2e framework](https://github.com/tester-army/e2e), [Allure reporter SDK](https://github.com/allure-framework/allure-js/blob/main/packages/allure-js-commons/README.md), [Allure 3 configuration](https://allurereport.org/docs/v3/configure/), [Netlify CLI](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/).

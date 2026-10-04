@@ -1,5 +1,8 @@
 # Final framework code review
 
+Current policy (2026-10-04): all created sandbox records remain permanently. Deletion and destructive recovery are disabled. The full suite has 100 UI results with successful PNG evidence and exact record links. The review below is historical; its cleanup behavior is superseded by [AGENTS.md](../AGENTS.md) and [current verification](VERIFICATION.md).
+
+
 Reviewed on **2026-10-03**: test collection, page objects, shared UI actions, persona fixtures, JWT/secret handling, owned-data cleanup, Allure export, GitHub Actions and Netlify deployment. Business operations and checks remain UI-only.
 
 | Finding | Impact | Resolution |

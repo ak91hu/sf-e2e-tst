@@ -14,6 +14,7 @@ The following steps define expected behavior. Execution status is recorded in Al
 | --- | --- | --- |
 | 1. Start role-specific JWT / singleaccess authentication; follow the real Got it UI link if a future maintenance notice appears. | JWT role E2E Service Manager; configured client and RSA key; OTP/checksum values withheld. | Native Lightning login completes without interactive code; tokens and nested redirect session parameters redacted. |
 | 2. Verify Opportunity list and View profile. | Role E2E Service Manager; /lightning/o/Opportunity/list; View profile. | Search this list visible; profile name exactly E2E Service Manager. |
-| 3. session.save('service'). | Session name: service; authenticated browser storage. | Authenticated session can be saved; no business data changed. |
+| 3. Capture a redacted persona-verification PNG. | Authenticated E2E Service Manager Lightning page. | Successful Allure setup has a PNG attachment; authentication secrets remain redacted. |
+| 4. session.save('service'). | Session name: service; authenticated browser storage. | Authenticated session can be saved; no business data changed. |
 
 Generated from [docs/test-design.ts](https://github.com/ak91hu/sf-e2e-tst/blob/main/docs/test-design.ts). Update the source, then run `npm run design:generate` and `npm run wiki:generate`.

@@ -8,9 +8,8 @@ export interface UiRecord { object: UiObject; name: string; marker: string; id?:
 export class UiRecords {
   readonly records: UiRecord[] = [];
   readonly journal = resolve('.e2e-data', `${uniqueName('attempt')}.json`);
-  private readonly remove: (record: UiRecord) => Promise<void>;
-  constructor(remove: (record: UiRecord) => Promise<void>) { this.remove = remove; }
-  persist() { mkdirSync(resolve('.e2e-data'), { recursive: true }); writeFileSync(this.journal, JSON.stringify({ org: environment.baseUrl, mode: 'ui', records: this.records }, null, 2)); }
+  constructor(_remove?: (record: UiRecord) => Promise<void>) {}
+  persist() { mkdirSync(resolve('.e2e-data'), { recursive: true }); writeFileSync(this.journal, JSON.stringify({ org: environment.baseUrl, mode: 'ui', retention: 'permanent', records: this.records }, null, 2)); }
   claim(object: UiObject, name: string, marker = name, accountName?: string): UiRecord {
     if (!name.startsWith('E2E-TA-')) throw new Error('UI fixtures must use this attempt test prefix.');
     const record = { object, name, marker, accountName, deleted: false }; this.records.push(record); this.persist(); return record;
@@ -25,10 +24,12 @@ export class UiRecords {
       || ![record.name, ...(record.previousNames ?? [])].includes(visibleName)) throw new Error('Visible name is not an exact journaled name for this owned record.');
     record.name = visibleName; record.displayName = visibleName; this.persist();
   }
-  markDeleted(record: UiRecord) { record.deleted = true; this.persist(); }
+  markDeleted(record: UiRecord) {
+    if (record.id) throw new Error('Created sandbox test records must never be deleted.');
+    record.deleted = true; this.persist(); // Unsaved, UI-verified absent form only.
+  }
   async cleanup() {
-    for (const object of ['Quote', 'Contract', 'Opportunity', 'Case', 'Pricebook2', 'Product2', 'Account'] as const) {
-      for (const record of this.records.filter(record => !record.deleted && record.object === object).reverse()) await this.remove(record);
-    }
+    // Retain even supporting records: deleting parents can cascade to Quotes.
+    this.persist();
   }
 }

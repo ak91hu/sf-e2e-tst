@@ -28,8 +28,10 @@ test.describe('Salesforce Contract regression', { session: 'salesforce', tags: [
     await sales.form('Contract', {}, contract.record.id); await sales.fill('Contract Term (months)', 36); await sales.cancel();
     expect((await sales.read(contract.record)).ContractTerm).toBe(contract.term);
   });
-  test('SF-CON-007 | Delete Draft through UI', { tags: ['delete'] }, async ({ sales }) => {
-    const contract = await sales.contracts.create(await sales.accounts.create()); await sales.delete(contract.record);
+  test('SF-CON-007 | Preserve Draft Contract across repeated navigation', { tags: ['retention'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create());
+    await sales.opportunities.assertListCanCreate();
+    expect(await sales.read(contract.record)).toMatchObject({ Status: 'Draft', ContractTerm: contract.term, AccountName: contract.account.name, Description: contract.record.marker });
   });
   test('SF-CON-008 | Activate and preserve the Account relationship', { tags: ['smoke', 'lifecycle'] }, async ({ sales }) => {
     const contract = await sales.contracts.create(await sales.accounts.create());
@@ -59,5 +61,50 @@ test.describe('Salesforce Contract regression', { session: 'salesforce', tags: [
     const contract = await sales.contracts.create(await sales.accounts.create());
     await sales.deleteDialog(contract.record); await sales.cancel();
     expect(await sales.read(contract.record)).toMatchObject({ Status: 'Draft', ContractTerm: 12, AccountName: contract.account.name, Description: contract.record.marker });
+  });
+  test('SF-CON-014 | Create a thirty-six-month Draft Contract', { tags: ['expansion-100', 'boundary'] }, async ({ sales }) => {
+    await sales.contracts.create(await sales.accounts.create(), 36);
+  });
+  for (const [id, term] of [['015', 1], ['016', 36]] as const) {
+    test(`SF-CON-${id} | Edit a Draft Contract term to ${term} months`, { tags: ['expansion-100', 'edit', 'boundary'] }, async ({ sales }) => {
+      const contract = await sales.contracts.create(await sales.accounts.create());
+      await sales.form('Contract', {}, contract.record.id); await sales.fill('Contract Term (months)', term); await sales.save();
+      expect(await sales.read(contract.record)).toMatchObject({ ContractTerm: term, StartDate: contract.startDate, SpecialTerms: contract.specialTerms, Status: 'Draft', AccountName: contract.account.name });
+    });
+  }
+  for (const [id, terms] of [['017', ''], ['018', 'Első sor: őű & feltételek.\nSecond line: delivery in 30 days.']] as const) {
+    test(`SF-CON-${id} | Persist ${terms ? 'multiline Unicode' : 'empty'} Special Terms`, { tags: ['expansion-100', 'edit'] }, async ({ sales }) => {
+      const contract = await sales.contracts.create(await sales.accounts.create());
+      await sales.form('Contract', {}, contract.record.id); await sales.fill('Special Terms', terms); await sales.save();
+      expect(await sales.read(contract.record)).toMatchObject({ SpecialTerms: terms, ContractTerm: contract.term, StartDate: contract.startDate, Status: 'Draft', AccountName: contract.account.name });
+    });
+  }
+  test('SF-CON-019 | Cancel Special Terms editing', { tags: ['expansion-100', 'cancel'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create());
+    await sales.form('Contract', {}, contract.record.id); await sales.fill('Special Terms', 'Unsaved terms: áéőű & clauses.'); await sales.cancel();
+    expect(await sales.read(contract.record)).toMatchObject({ SpecialTerms: contract.specialTerms, ContractTerm: contract.term, StartDate: contract.startDate, Status: 'Draft', AccountName: contract.account.name });
+  });
+  test('SF-CON-020 | Edit Contract Start Date into the past', { tags: ['expansion-100', 'edit', 'date'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create()); const startDate = futureDate(-7);
+    await sales.form('Contract', {}, contract.record.id); await sales.date('Contract Start Date', startDate); await sales.save();
+    expect(await sales.read(contract.record)).toMatchObject({ StartDate: startDate, ContractTerm: contract.term, SpecialTerms: contract.specialTerms, Status: 'Draft', AccountName: contract.account.name });
+  });
+  test('SF-CON-021 | Cancel Contract Start Date editing', { tags: ['expansion-100', 'cancel', 'date'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create());
+    await sales.form('Contract', {}, contract.record.id); await sales.date('Contract Start Date', futureDate(30)); await sales.cancel();
+    expect(await sales.read(contract.record)).toMatchObject({ StartDate: contract.startDate, ContractTerm: contract.term, SpecialTerms: contract.specialTerms, Status: 'Draft', AccountName: contract.account.name });
+  });
+  test('SF-CON-022 | Isolate two Draft Contracts sharing an Account', { tags: ['expansion-100', 'relationships'] }, async ({ sales }) => {
+    const account = await sales.accounts.create(); const first = await sales.contracts.create(account); const second = await sales.contracts.create(account); const terms = 'First Contract only: őű & 24 months.';
+    await sales.form('Contract', {}, first.record.id); await sales.fill('Contract Term (months)', 24); await sales.fill('Special Terms', terms); await sales.save();
+    expect(first.record.id).not.toBe(second.record.id);
+    expect(await sales.read(first.record)).toMatchObject({ ContractTerm: 24, SpecialTerms: terms, StartDate: first.startDate, Status: 'Draft', AccountName: account.name });
+    expect(await sales.read(second.record)).toMatchObject({ ContractTerm: second.term, SpecialTerms: second.specialTerms, StartDate: second.startDate, Status: 'Draft', AccountName: account.name });
+  });
+  test('SF-CON-023 | Revise the Contract Description ownership marker', { tags: ['expansion-100', 'edit'] }, async ({ sales }) => {
+    const contract = await sales.contracts.create(await sales.accounts.create()); const marker = uniqueName('RevisedContractMarker');
+    await sales.form('Contract', {}, contract.record.id); await sales.fill('Description', marker); await sales.save();
+    contract.record.marker = marker; sales.owned.persist();
+    expect(await sales.read(contract.record)).toMatchObject({ Description: marker, SpecialTerms: contract.specialTerms, ContractTerm: contract.term, StartDate: contract.startDate, Status: 'Draft', AccountName: contract.account.name });
   });
 });

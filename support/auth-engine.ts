@@ -3,10 +3,14 @@ import { defineEngine, type EngineAttemptContext, type EngineFixtureContext } fr
 import { web, surfaceOf, type Browser, type WebOptions } from '@e2e-dev/web';
 import { environment } from './environment.ts';
 import { authRedactionValues, encodedSecretForms } from './auth-redaction.ts';
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type { UiRecord } from './ui-records.ts';
 
 export type Persona = 'sales' | 'service';
 export interface SalesforceAuth { open(persona: Persona): Promise<void> }
-export const test = untypedTest as unknown as TestAPI<TestFixtures & { browser: Browser; salesforceAuth: SalesforceAuth }>;
+export interface RecordEvidence { publish(records: readonly UiRecord[]): Promise<void> }
+export const test = untypedTest as unknown as TestAPI<TestFixtures & { browser: Browser; salesforceAuth: SalesforceAuth; recordEvidence: RecordEvidence }>;
 
 // Extend the documented engine contract. Authentication values are held by
 // the engine and registered for redaction before navigation; no credential is
@@ -35,6 +39,19 @@ export function salesforceWeb(options: WebOptions = {}, personas: readonly Perso
     fixtures: {
       ...base.fixtures,
       browser: browserFixture,
+      recordEvidence(context) {
+        return context.fixture<RecordEvidence>('recordEvidence', {
+          async publish(records) {
+            if (!attempt) throw new Error('Record evidence requires an active attempt.');
+            const saved = records.filter(record => record.id && !record.deleted).map(record => ({
+              object: record.object, name: record.displayName ?? record.name, id: record.id,
+              url: new URL(`/lightning/r/${record.object}/${record.id}/view`, environment.baseUrl).href,
+            }));
+            writeFileSync(resolve(attempt.artifactsDir, 'retained-records.json'), JSON.stringify({ retention: 'permanent', records: saved }, null, 2));
+            context.attachArtifact('log', 'retained-records.json');
+          },
+        }, { publish: { kind: 'resource', label: () => 'Link permanently retained sandbox records' } });
+      },
       salesforceAuth(context) {
         const browser = browserFixture(context);
         return context.fixture<SalesforceAuth>('salesforceAuth', {

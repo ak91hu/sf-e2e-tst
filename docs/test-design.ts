@@ -18,18 +18,18 @@ const opportunity: ScenarioStep[] = [
 ];
 const contract: ScenarioStep[] = [
   ['Complete New Contract with the owned Account, UTC current Start Date, 12 months, unique Description marker and Unicode Special Terms.', 'Save and completed fields are visible; the owned Account is prefilled.'],
-  ['Save the Contract and open fresh Details.', 'Draft; correct Account, Start Date, 12 months, Description and Special Terms; Created By is E2E Sales Manager; Contract Number enters the cleanup journal.'],
+  ['Save the Contract and open fresh Details.', 'Draft; correct Account, Start Date, 12 months, Description and Special Terms; Created By is E2E Sales Manager; Contract Number enters the retention journal.'],
 ];
 const quote: ScenarioStep[] = [
   ['Open New Quote for the owned Opportunity; enter unique Quote Name, expiry +14 days and Unicode description.', 'Save and entered fields are visible; the owned Opportunity is prefilled.'],
   ['Save the Quote and open fresh Details.', 'Draft; correct Quote Name, Opportunity Name, Account Name and Expiration Date; Created By is E2E Sales Manager.'],
 ];
-const cleanup: ScenarioStep = ['Fixture teardown deletes only this case’s journaled records through UI in dependency order; discard unfinished forms.', 'The UI leaves each deleted record URL; exact-name search finds no record. Journal deleted becomes true only after proven deletion or absence. Failed cleanup retains the journal for targeted UI recovery.'];
+const cleanup: ScenarioStep = ['Preserve every created sandbox record; publish exact record links and capture a redacted completion PNG.', 'No records are deleted, including supporting Accounts, Contracts, Cases and catalogue data. Successful Allure results contain a PNG and links to every saved record; journals remain permanently.'];
 const add = (id: string, title: string, file: string, data: string, steps: ScenarioStep[], persona = sales, fixture: 'account' | 'opportunity' | 'contract' | 'quote' | 'none' = 'none') => {
   const setup = fixture === 'none' ? [] : [...account, ...(fixture === 'opportunity' || fixture === 'quote' ? opportunity : []), ...(fixture === 'contract' ? contract : []), ...(fixture === 'quote' ? quote : [])];
   cases.push({ id, title, file: `tests/${file}.e2e.ts`, persona, data,
     preconditions: 'JWT Web scope and role permissions configured; Salesforce Lightning, en_US UI, Europe/Budapest user timezone; one worker and isolated owned data. Standard Quote enabled; object UI permissions follow the assigned role.',
-    steps: [auth, ...setup, ...steps, cleanup].map(step => [step[0], step[2] ?? (step === auth ? `Saved role session: ${persona}; configured JWT client and private key (values withheld).` : step === cleanup ? 'This case’s exact owned record IDs, names and Description markers in .e2e-data; order: Quote, Contract, Opportunity, Case, Price Book, Product, Account.' : account.includes(step) ? 'Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save.' : opportunity.includes(step) ? 'Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity.' : contract.includes(step) ? 'Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms.' : quote.includes(step) ? 'Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description.' : data), step[1]] as DesignStep) });
+    steps: [auth, ...setup, ...steps, cleanup].map(step => [step[0], step[2] ?? (step === auth ? `Saved role session: ${persona}; configured JWT client and private key (values withheld).` : step === cleanup ? 'Exact saved record IDs and names; permanent .e2e-data journal; redacted PNG and retained-records.json in this attempt’s artifacts.' : account.includes(step) ? 'Account Name = generated E2E-TA- name (timestamp + UUID); owned Account ID after Save.' : opportunity.includes(step) ? 'Owned Account ID; generated Opportunity name; Amount 12345.67 USD; UTC date +30 days; Stage Prospecting; Unicode description; Sales Manager identity.' : contract.includes(step) ? 'Owned Account ID; UTC current Start Date; term 12 months; unique Description marker; Unicode Special Terms.' : quote.includes(step) ? 'Owned Opportunity ID and Account; generated Quote name; UTC expiry +14 days; Unicode description.' : data), step[1]] as DesignStep) });
 };
 const draftData = 'Unique E2E-TA- name (timestamp + UUID); every Account and business record belongs to this case’s fixture.';
 add('SF-AUTH-001', 'Authenticated Opportunity list is accessible', 'auth', 'Saved Sales session; no business data.', [
@@ -68,9 +68,10 @@ add('SF-OPP-010', 'Cancel Opportunity deletion', 'opportunity', draftData, [
   ['Open the Delete action.', 'Delete confirmation dialog and Delete button visible.'],
   ['Cancel and open fresh Details.', 'All original record fields and relationships persist.'],
 ], sales, 'opportunity');
-add('SF-OPP-011', 'Confirm Opportunity deletion through UI', 'opportunity', draftData, [
-  ['Open Delete and confirm Delete.', 'The dialog closes; Salesforce leaves the deleted record URL.'],
-  ['Search for the exact name in the Opportunity list.', 'No exact match; only then does the owned journal set deleted = true.'],
+add('SF-OPP-011', 'Preserve Opportunity and its Quote after cancelled deletion', 'opportunity', draftData, [
+  ...quote,
+  ['Open Opportunity Delete and cancel the confirmation.', 'The dialog closes without deleting the parent or its Quote.'],
+  ['Read fresh Opportunity and Quote Details and exact relationship link.', 'All Opportunity fields persist; Quote remains Draft with its original name and exact Opportunity link.'],
 ], sales, 'opportunity');
 for (const [id, amount] of [['012', '0'], ['013', '0.01']]) add(`SF-OPP-${id}`, `Persist Opportunity amount: ${amount}`, 'opportunity', `${draftData} Amount = ${amount} USD.`, [
   [`Create an Opportunity with amount ${amount} under the owned Account; Save.`, 'The dialog closes; URL contains the owned Opportunity ID.'],
@@ -90,9 +91,9 @@ add('SF-CON-006', 'Cancel Contract editing', 'contract', `${draftData} Unsaved t
   ['Open Edit; enter term = 36; Cancel.', 'The dialog closes.'],
   ['Open fresh Details.', 'Original 12 months persist; owned Description marker correct.'],
 ], sales, 'contract');
-add('SF-CON-007', 'Delete Draft Contract', 'contract', draftData, [
-  ['Open Delete and confirm Delete.', 'The dialog closes; Salesforce leaves the owned Contract URL.'],
-  ['Search Contract list for the exact Contract Number.', 'No match; deleted = true in the journal.'],
+add('SF-CON-007', 'Preserve Draft Contract across repeated navigation', 'contract', draftData, [
+  ['Navigate to the Opportunity list.', 'List is accessible and New is visible.'],
+  ['Return to fresh Contract Details.', 'Same Contract ID; Draft, original term, Account and Description marker persist.'],
 ], sales, 'contract');
 add('SF-CON-008', 'Activate Contract', 'contract', `${draftData} Draft → Activated.`, [
   ['Show more actions → Activate; confirm Activate.', 'Activate confirmation dialog closes.'],
@@ -128,9 +129,9 @@ add('SF-QUO-007', 'Cancel Quote deletion', 'quote', draftData, [
   ['Open Delete.', 'Delete visible in the confirmation dialog.'],
   ['Cancel and open fresh Details.', 'Original Quote Name remains readable.'],
 ], sales, 'quote');
-add('SF-QUO-008', 'Confirm Quote deletion through UI', 'quote', draftData, [
-  ['Open Delete and confirm Delete.', 'The dialog closes; Salesforce leaves the Quote URL.'],
-  ['Search for the exact Quote name.', 'No match; deleted = true in the journal.'],
+add('SF-QUO-008', 'Preserve Quote and Opportunity across repeated navigation', 'quote', draftData, [
+  ['Read the parent Opportunity with all field and ownership assertions.', 'Original parent fields persist.'],
+  ['Return to fresh Quote Details and verify the relationship link.', 'Same Quote ID; original name, Draft status and exact Opportunity link persist.'],
 ], sales, 'quote');
 add('SF-QUO-009', 'Product line, totals and synchronization', 'quote', `${draftData} Owned active Product and custom Price Book; unit price = 125.50; quantity = 2; total = 251.00 USD.`, [
   ['Create owned Product through UI with unique name/code and Active selected; Add Standard Price = 125.50.', 'Saved dialogs close; owned Product ID known. Global activation of standard price book is not required.'],
@@ -162,7 +163,7 @@ add('SF-E2E-001', 'Complete Sales → Service handoff', 'integration', `${draftD
   ['Activate Contract and confirm; open fresh Details.', 'Activated; 12 months; same Account; Activated By = Sales Manager; Activated Date populated.'],
   ['Clear browser state; open new Service JWT session; open and close profile menu.', 'Visible profile name E2E Service Manager; new Service session active.'],
   ['Open fresh Details of the same Contract as Service Manager.', 'Activated, owned Account and Description marker readable; Edit and Delete button counts zero.'],
-  ['After successful Service checks, open new Sales JWT session, verify profile and open fresh Opportunity Details; on failure, defer Sales restoration until evidence capture in fixture teardown.', 'E2E Sales Manager active; owned Opportunity Closed Won with 100%; cleanup runs as Sales.'],
+  ['After successful Service checks, open new Sales JWT session, verify profile and open fresh Opportunity Details; on failure, defer Sales restoration until evidence capture in fixture teardown.', 'E2E Sales Manager active; owned Opportunity Closed Won with 100%; records remain permanently.'],
 ], `${sales} → ${service} → ${sales}`, 'opportunity');
 add('SF-AI-001', 'AI Opportunity editing', 'agent/sales', `${draftData} New unique name; Amount = 543.21.`, [
   ['Ask AI to enter the new Opportunity name and amount without saving. Save through the page object and wait for the dialog to close.', 'Dialog closes; agent operates through UI only.'],
@@ -183,6 +184,7 @@ for (const [id, persona, session] of [['SF-AUTH', sales, 'salesforce'], ['SF-AUT
   steps: [
     ['Start role-specific JWT / singleaccess authentication; follow the real Got it UI link if a future maintenance notice appears.', `JWT role ${persona}; configured client and RSA key; OTP/checksum values withheld.`, 'Native Lightning login completes without interactive code; tokens and nested redirect session parameters redacted.'],
     ['Verify Opportunity list and View profile.', `Role ${persona}; /lightning/o/Opportunity/list; View profile.`, `Search this list visible; ${persona === sales ? 'New visible; ' : ''}profile name exactly ${persona}.`],
+    ['Capture a redacted persona-verification PNG.', `Authenticated ${persona} Lightning page.`, 'Successful Allure setup has a PNG attachment; authentication secrets remain redacted.'],
     [`session.save('${session}').`, `Session name: ${session}; authenticated browser storage.`, 'Authenticated session can be saved; no business data changed.'],
   ],
 });
@@ -250,7 +252,7 @@ add('SF-E2E-002', 'Complete product sale through Contract and Service handoff', 
   ['Edit Special Terms; Save; Activate and confirm.', 'Activated; term 24; exact agreed terms; activating Sales user and nonempty activation date.', 'Special Terms: Agreed delivery in 30 days; service SLA 8 hours.'],
   ['Clear state; open fresh Service JWT session and verify profile.', 'Visible profile is E2E Service Manager.', 'Service role; preauthorized client/key, values withheld.'],
   ['Read the same activated Contract as Service.', 'Same Account, Activated, term 24, exact terms and marker; Edit/Delete absent.', 'Owned Contract ID; expected 24 months and agreed terms.'],
-  ['Restore Sales with fresh JWT after successful Service checks and verify profile; on failure, defer restoration until evidence capture in fixture teardown.', 'E2E Sales Manager is active; UI cleanup will run with Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
+  ['Restore Sales with fresh JWT after successful Service checks and verify profile; on failure, defer restoration until evidence capture in fixture teardown.', 'E2E Sales Manager is active; records remain permanently and evidence is captured.', 'Sales role; preauthorized client/key, values withheld.'],
   ['Reread Opportunity, Quote and Contract through fresh Details.', 'Won/100%/251.00; Quote Accepted/not syncing/251.00; Contract Activated/24 months/exact terms.', 'The exact owned Opportunity, Quote, Contract and Account IDs.'],
 ], `${sales} → ${service} → ${sales}`);
 add('SF-E2E-003', 'Recover a lost sale and replace a denied Quote', 'integration', `${draftData} Lost → Qualification → Proposal → Negotiation; Denied and revised Accepted Quotes; charges 12.34+5.67=18.01; Won; revised 24-month Activated Contract; Service handoff.`, [
@@ -269,9 +271,146 @@ add('SF-E2E-003', 'Recover a lost sale and replace a denied Quote', 'integration
   ['Activate Contract and confirm; read Details.', 'Activated; term 24; exact revised terms; activating Sales user/date.', 'Owned Contract ID; same Account; term 24 and revised terms.'],
   ['Clear state; open fresh Service JWT session and verify profile.', 'Visible profile E2E Service Manager.', 'Service role; preauthorized client/key, values withheld.'],
   ['Read the same Contract as Service.', 'Activated; term 24; exact Account, terms and marker; Edit/Delete absent.', 'Owned Contract ID, Account name, revised terms and marker.'],
-  ['Restore Sales with fresh JWT after successful Service checks and verify profile; on failure, defer restoration until evidence capture in fixture teardown.', 'Sales Manager active; cleanup uses Sales permissions.', 'Sales role; preauthorized client/key, values withheld.'],
+  ['Restore Sales with fresh JWT after successful Service checks and verify profile; on failure, defer restoration until evidence capture in fixture teardown.', 'Sales Manager active; records remain permanently.', 'Sales role; preauthorized client/key, values withheld.'],
   ['Reread the Opportunity and both Quotes.', 'Opportunity Won/100%/18.01; revised Quote Accepted/18.01; initial Quote Denied; exact relationships persist.', 'Owned Opportunity and distinct initial/revised Quote IDs.'],
 ], `${sales} → ${service} → ${sales}`, 'opportunity');
+for (const [id, description] of [['018', ''], ['019', 'First line: áéőű\nSecond line: delivery & support.']]) add(`SF-OPP-${id}`, `Persist ${description ? 'multiline Unicode' : 'empty'} Opportunity description`, 'opportunity', `${draftData} Description = ${JSON.stringify(description)}.`, [
+  ['Edit Description and Save.', 'Dialog closes; other fields unchanged.'],
+  ['Read fresh Details with full Opportunity assertions.', 'Exact description including line breaks; all original fields, Account and Sales ownership persist.'],
+], sales, 'opportunity');
+add('SF-OPP-020', 'Edit Opportunity Amount to a small decimal', 'opportunity', `${draftData} Amount 12345.67 → 42.42 USD.`, [
+  ['Edit Amount to 42.42 and Save.', 'Dialog closes.'],
+  ['Read fresh Details with full assertions.', '42.42 USD; other fields, Account and ownership persist.'],
+], sales, 'opportunity');
+for (const [id, days] of [['021', 0], ['022', 365]]) add(`SF-OPP-${id}`, `Persist Opportunity Close Date ${days === 0 ? 'today' : 'one year ahead'}`, 'opportunity', `${draftData} UTC Close Date +${days} days.`, [
+  ['Create Opportunity with the specified Close Date and Save.', 'Record URL contains the saved Opportunity ID.'],
+  ['Read fresh Details with full assertions.', 'Exact date; Prospecting, original amount, description, Account and Sales ownership persist.'],
+], sales, 'account');
+add('SF-OPP-023', 'Persist manually entered probability', 'opportunity', `${draftData} Probability = 37%.`, [
+  ['Edit Probability (%) to 37 and Save.', 'Dialog closes.'],
+  ['Read fresh Details with full assertions.', 'Probability 37%; original Stage, fields, Account and Sales ownership persist.'],
+], sales, 'opportunity');
+add('SF-OPP-024', 'Persist Unicode Next Step', 'opportunity', `${draftData} Next Step = Árajánlat egyeztetés & follow-up.`, [
+  ['Edit Next Step and Save.', 'Dialog closes.'],
+  ['Read fresh Details with full assertions.', 'Exact Unicode Next Step; original fields and relationships persist.'],
+], sales, 'opportunity');
+for (const [id, tax, shipping] of [['014', 12.34, 0], ['015', 0, 5.67], ['016', 1000000.99, 12345.67], ['017', 0.01, 0.01]]) add(`SF-QUO-${id}`, `Recalculate Quote total with tax ${tax} and shipping ${shipping}`, 'quote', `${draftData} Tax ${tax}; shipping ${shipping}; no line items.`, [
+  ['Edit Tax and Shipping and Handling and Save.', 'Dialog closes.'],
+  ['Read fresh Quote Details and exact Opportunity link; reread full Opportunity.', `Tax ${tax}; shipping ${shipping}; Subtotal/TotalPrice zero; GrandTotal ${Math.round((Number(tax) + Number(shipping)) * 100) / 100}; Draft and name persist; parent unchanged.`],
+], sales, 'quote');
+add('SF-QUO-018', 'Persist Quote expiration today', 'quote', `${draftData} Expiration Date = UTC today.`, [
+  ['Edit Expiration Date to today and Save.', 'Dialog closes.'],
+  ['Read fresh Details and exact Opportunity link.', 'Exact current date; original name, Draft and Opportunity relationship persist.'],
+], sales, 'quote');
+for (const [id, description] of [['019', ''], ['020', 'Quote first line: áéőű\nSecond line: service & delivery.']]) add(`SF-QUO-${id}`, `Persist ${description ? 'multiline Unicode' : 'empty'} Quote description`, 'quote', `${draftData} Description = ${JSON.stringify(description)}.`, [
+  ['Edit Description and Save.', 'Dialog closes.'],
+  ['Read fresh Details and exact Opportunity link.', 'Exact description including line breaks; original name, Draft and relationship persist.'],
+], sales, 'quote');
+add('SF-QUO-021', 'Return Accepted Quote to Draft', 'quote', draftData, [
+  ...['Accepted', 'Draft'].map(status => [`Edit Status to ${status} and Save; read fresh Details and exact Opportunity link.`, `Status ${status}; original name and exact parent persist.`] as ScenarioStep),
+  ['Read the full parent Opportunity.', 'Original fields, Account and Sales ownership persist.'],
+], sales, 'quote');
+add('SF-OPP-025', 'Clear a saved Unicode Next Step', 'opportunity', `${draftData} Next Step: Árajánlat egyeztetés & follow-up → empty.`, [
+  ['Edit Next Step to the Unicode text; Save and read fresh Details.', 'Exact text persists; full original Opportunity fields, Account and Sales ownership verified.'],
+  ['Edit Next Step to empty; Save and read fresh Details.', 'Next Step is empty; original fields and relationships persist.'],
+], sales, 'opportunity');
+add('SF-OPP-026', 'Cancel a manual probability change', 'opportunity', `${draftData} Unsaved Probability 73%.`, [
+  ['Read the original Probability from fresh Details.', 'Original probability captured with full Opportunity assertions.'],
+  ['Edit Probability (%) to 73; Cancel; read fresh Details.', 'Original probability, all fields, exact Account link and Sales ownership persist.'],
+], sales, 'opportunity');
+for (const [id, probability] of [['027', 0], ['028', 100]]) add(`SF-OPP-${id}`, `Persist ${probability}% probability on an open Opportunity`, 'opportunity', `${draftData} Probability ${probability}%; Stage Prospecting.`, [
+  [`Edit Probability (%) to ${probability}; Save.`, 'Dialog closes.'],
+  ['Read fresh Details with full Opportunity assertions.', `Probability ${probability}%; Stage remains Prospecting; original fields, exact Account link and Sales ownership persist.`],
+], sales, 'opportunity');
+add('SF-OPP-029', 'Cancel a Close Date change', 'opportunity', `${draftData} Original UTC +30 days; unsaved UTC +90 days.`, [
+  ['Edit Close Date to UTC +90 days; Cancel.', 'Dialog closes without saving.'],
+  ['Read fresh Details with full assertions.', 'Original +30-day Close Date, fields, Account link and Sales ownership persist.'],
+], sales, 'opportunity');
+add('SF-OPP-030', 'Edit an open Opportunity Close Date into the past', 'opportunity', `${draftData} Close Date UTC -30 days.`, [
+  ['Edit Close Date to UTC -30 days; Save.', 'Dialog closes.'],
+  ['Read fresh Details with full assertions.', 'Exact past Close Date; Stage Prospecting; original amount, description, Account and Sales ownership persist.'],
+], sales, 'opportunity');
+for (const [id, field, value] of [['031', 'Order Number', 'ORD-ÁR01'], ['032', 'Main Competitor(s)', 'Versenytárs őű & partner'], ['033', 'Tracking Number', 'TRACK-100-A1']]) add(`SF-OPP-${id}`, `Persist ${field}`, 'opportunity', `${draftData} ${field} = ${value}.${id === '031' ? ' Exact configured UI maximum: 8 characters.' : id === '033' ? ' Exact configured UI maximum: 12 characters.' : ' Unicode text.'}`, [
+  [`Edit ${field} to the specified value; Save.`, 'Dialog closes; entered value verified before Save.'],
+  ['Read fresh Details with full Opportunity assertions.', `Exact ${field} value; original fields, Account and Sales ownership persist.`],
+], sales, 'opportunity');
+add('SF-OPP-034', 'Isolate edits between Opportunities sharing an Account', 'opportunity', `${draftData} Two distinct Opportunity IDs under one Account; first Amount 456.78, UTC Close Date +75 days.`, [
+  ...opportunity, ...opportunity,
+  ['Edit only the first Opportunity amount and Close Date; Save.', 'Dialog closes; Opportunity IDs are distinct.'],
+  ['Read both Opportunities with full assertions and exact Account links.', 'First has 456.78 and +75-day date; second retains 12345.67 and +30-day date; both original names, descriptions, stages and Sales ownership persist.'],
+], sales, 'account');
+add('SF-CON-014', 'Create a thirty-six-month Draft Contract', 'contract', `${draftData} Term 36 months; UTC current Start Date; Unicode default Special Terms.`, [
+  ['Complete New Contract with owned Account, current UTC Start Date, 36 months, unique Description marker and Unicode Special Terms; Save.', 'Form closes; exact Contract ID resolved and Contract Number retained.'],
+  ['Read fresh Details.', 'Draft; term 36; exact Account, date, marker and Special Terms; Created By E2E Sales Manager.'],
+], sales, 'account');
+for (const [id, term] of [['015', 1], ['016', 36]]) add(`SF-CON-${id}`, `Edit a Draft Contract term to ${term} months`, 'contract', `${draftData} Term 12 → ${term} months.`, [
+  [`Edit Contract Term (months) to ${term}; Save.`, 'Dialog closes.'],
+  ['Read fresh Contract Details.', `Term ${term}; original Start Date, Unicode Special Terms, Account and owned Description marker; Draft persists.`],
+], sales, 'contract');
+for (const [id, terms] of [['017', ''], ['018', 'Első sor: őű & feltételek.\nSecond line: delivery in 30 days.']]) add(`SF-CON-${id}`, `Persist ${terms ? 'multiline Unicode' : 'empty'} Special Terms`, 'contract', `${draftData} Special Terms = ${JSON.stringify(terms)}.`, [
+  ['Edit Special Terms to the specified value; Save.', 'Dialog closes.'],
+  ['Read fresh Contract Details.', 'Exact Special Terms including line breaks/empty value; original term 12, Start Date, Account and Description marker; Draft persists.'],
+], sales, 'contract');
+add('SF-CON-019', 'Cancel Special Terms editing', 'contract', `${draftData} Unsaved: Unsaved terms: áéőű & clauses.`, [
+  ['Edit Special Terms to the unsaved text; Cancel.', 'Dialog closes.'],
+  ['Read fresh Contract Details.', 'Original Unicode Special Terms, term, Start Date, Account and owned marker; Draft persists.'],
+], sales, 'contract');
+add('SF-CON-020', 'Edit Contract Start Date into the past', 'contract', `${draftData} Start Date UTC -7 days.`, [
+  ['Edit Contract Start Date to UTC -7 days; Save.', 'Dialog closes.'],
+  ['Read fresh Contract Details.', 'Exact past date; original term, Special Terms, Account and marker; Draft persists.'],
+], sales, 'contract');
+add('SF-CON-021', 'Cancel Contract Start Date editing', 'contract', `${draftData} Unsaved Start Date UTC +30 days.`, [
+  ['Edit Contract Start Date to UTC +30 days; Cancel.', 'Dialog closes.'],
+  ['Read fresh Contract Details.', 'Original UTC current Start Date, term, Special Terms, Account and marker; Draft persists.'],
+], sales, 'contract');
+add('SF-CON-022', 'Isolate two Draft Contracts sharing an Account', 'contract', `${draftData} Two distinct Contract IDs; first term 24 and Special Terms First Contract only: őű & 24 months.`, [
+  ...contract, ...contract,
+  ['Edit only the first Contract term and Special Terms; Save.', 'Dialog closes; Contract IDs are distinct.'],
+  ['Read both fresh Contract Details.', 'First term 24 and exact changed terms; second term 12 and original terms; each original date/marker and shared Account; both Draft.'],
+], sales, 'account');
+add('SF-CON-023', 'Revise Contract Description ownership marker', 'contract', `${draftData} New unique E2E-TA-RevisedContractMarker value.`, [
+  ['Edit Description to the new unique marker; Save; persist the new marker in the permanent journal.', 'Dialog closes; journal now matches the saved Description.'],
+  ['Read fresh Contract Details.', 'Exact revised marker; original term, date, Special Terms and Account; Draft persists.'],
+], sales, 'contract');
+add('SF-QUO-022', 'Persist Quote expiration one year ahead', 'quote', `${draftData} Expiration Date UTC +365 days.`, [
+  ['Edit Expiration Date to UTC +365 days; Save.', 'Dialog closes.'],
+  ['Read fresh Quote Details and exact Opportunity link.', 'Exact expiry; original name, Draft, Opportunity and Account names; relationship targets owned Opportunity ID.'],
+], sales, 'quote');
+add('SF-QUO-023', 'Cancel Quote expiration editing', 'quote', `${draftData} Original expiry UTC +14; unsaved UTC +90 days.`, [
+  ['Edit Expiration Date to UTC +90 days; Cancel.', 'Dialog closes.'],
+  ['Read fresh Quote Details and exact Opportunity link.', 'Original expiry, name, Draft and owned parent relationship persist.'],
+], sales, 'quote');
+add('SF-QUO-024', 'Cancel Quote tax and shipping editing', 'quote', `${draftData} Saved Tax 1.23, Shipping 4.56, GrandTotal 5.79; unsaved Tax 12.34, Shipping 5.67.`, [
+  ['Edit Tax to 1.23 and Shipping and Handling to 4.56; Save; read fresh Details.', 'Exact charges 1.23/4.56 and GrandTotal 5.79 persist.'],
+  ['Read fresh Details and capture original Tax, ShippingHandling and GrandTotal.', 'Original values captured from UI.'],
+  ['Edit both charges to 12.34 and 5.67; Cancel.', 'Dialog closes.'],
+  ['Read fresh Details and exact Opportunity link.', 'Original charges and GrandTotal; name, Draft and owned parent persist.'],
+], sales, 'quote');
+for (const [id, statuses] of [['025', ['Presented', 'Denied']], ['026', ['Denied', 'Draft']]] as const) add(`SF-QUO-${id}`, `Quote ${statuses.join(' → ')} without changing its Opportunity`, 'quote', `${draftData} Statuses ${statuses.join(' → ')}.`, [
+  ...statuses.map(status => [`Edit Quote Status to ${status}; Save; read fresh Quote Details, exact Opportunity link and full parent Details.`, `Quote ${status}; same name/parent; Opportunity fields, Account link and Sales ownership unchanged.`] as ScenarioStep),
+], sales, 'quote');
+add('SF-QUO-027', 'Rename the same Quote twice', 'quote', `${draftData} Two unique names: QuoteRevisionOne and QuoteRevisionTwo; same Quote ID.`, [
+  ...['QuoteRevisionOne', 'QuoteRevisionTwo'].map(prefix => [`Edit Quote Name to a generated ${prefix} name; update journal; Save; read Details and parent link; search exact previous name.`, 'Exact new name, Draft, same parent ID; exact previous name absent, allowing asynchronously indexed row under new name.' ] as ScenarioStep),
+  ['Read full parent Opportunity Details.', 'Original fields, Account and Sales ownership persist.'],
+], sales, 'quote');
+for (const [id, field, tax, shipping, total] of [['028', 'Tax', 56.78, 5.67, 62.45], ['029', 'Shipping and Handling', 12.34, 9.99, 22.33]]) add(`SF-QUO-${id}`, `Edit ${field} while preserving the other charge`, 'quote', `${draftData} Initial Tax/Shipping 12.34/5.67; final ${tax}/${shipping}; GrandTotal ${total}.`, [
+  ['Edit Tax 12.34 and Shipping 5.67; Save and read fresh Details.', 'Charges read back exactly; GrandTotal 18.01.'],
+  [`Edit only ${field}; Save; read fresh Details and exact parent link.`, `Tax ${tax}; ShippingHandling ${shipping}; GrandTotal ${total}; Subtotal/TotalPrice zero; name, Draft and parent persist.`],
+  ['Read full parent Opportunity Details.', 'Original amount, fields, Account and Sales ownership persist.'],
+], sales, 'quote');
+add('SF-QUO-030', 'Cancel Quote Description editing', 'quote', `${draftData} Unsaved Description = Unsaved őű & description.\\nSecond line.`, [
+  ['Read the original Description from fresh Quote Details.', 'Original description captured from UI.'],
+  ['Edit Description to the unsaved multiline Unicode text; Cancel.', 'Dialog closes.'],
+  ['Read fresh Quote Details and exact Opportunity link.', 'Original Description, name, Draft and owned parent persist.'],
+], sales, 'quote');
+add('SF-QUO-031', 'Isolate Quotes belonging to different Opportunities', 'quote', `${draftData} Two Opportunities and two Quotes under one Account; first Quote Accepted with charges 12.34/5.67.`, [
+  ...opportunity, ...opportunity,
+  ['Create one Draft Quote under each distinct Opportunity through UI; Save and read each.', 'Each unique Quote name/ID, +14-day expiry and Unicode description; correct Account and its own Opportunity; Sales creator verified.'],
+  ['Read the second Quote and capture its original Tax and Shipping and Handling UI values.', 'Original unset charges are visible as blank; GrandTotal is zero. Blank values are preserved, not assumed to be stored numeric zeros.'],
+  ['Edit only the first Quote to Accepted, Tax 12.34 and Shipping 5.67; Save.', 'Dialog closes; parent and child IDs are distinct.'],
+  ['Read both fresh Quote Details and exact parent links.', 'First Accepted/12.34/5.67/18.01; second Draft with its original blank Tax/Shipping and GrandTotal zero; exact original names and separate parent IDs.'],
+  ['Read both parent Opportunities with full assertions.', 'Both retain original fields, amount 12345.67, Prospecting, shared Account and Sales ownership.'],
+], sales, 'account');
 export const testDesigns: readonly TestDesign[] = cases;
 export const designTotals = {
   designs: cases.length,

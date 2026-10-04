@@ -1,5 +1,45 @@
 # Verification evidence
 
+## Current 100-result expansion — 2026-10-04
+
+The full collection selects **100 UI results: 98 cases and two UI-verified session setups**. There are **100 test designs, 883 explicit Action / Data / Expected output steps and 102 generated wiki pages**. The 30 added cases are SF-OPP-025–034, SF-CON-014–023 and SF-QUO-022–031. They cover field boundaries, persistence and cancellation, independent Quote charge recalculation and isolation between records sharing an Account or separate Opportunity parents.
+
+Typecheck, **13/13 unit tests**, POM enforcement, exact full-suite collection/design matching and generated wiki checks passed. CI and the full-run retention verifier now require 100 results. All business preparation, actions and assertions remain UI based; the permanent-retention policy and successful PNG/record-link evidence requirements apply unchanged.
+
+Focused live run `01a10600-7ec4-726c-b0b9-b702217d8cb2`, `.validation/expansion-100`: **31 selected, 27 passed, 4 failed**, **18m30s**, one worker and zero retries; started `2026-10-04T08:20:59.086Z`. All ten new Contracts passed. SF-OPP-031/033 used values exceeding the visible Order Number/Tracking Number UI limits of 8/12 characters. SF-QUO-024/031 incorrectly expected unset Quote charges to be numeric zeros or a mapped property: the UI shows blank charges.
+
+The Order Number and Tracking Number data now use their exact 8/12-character boundaries, including Unicode for Order Number. SF-QUO-024 now saves and verifies a nonzero baseline (Tax 1.23, Shipping 4.56, GrandTotal 5.79) before cancelling changes to 12.34/5.67. SF-QUO-031 captures and compares the second Quote's original visible charge values, preserving the distinction between unset and numeric zero. The test designs describe these actual actions and expectations.
+
+Correction run `01a10612-5fff-729c-8078-e6e4c34ee860`, `.validation/expansion-100-field-limits`: **5 selected, 5 passed, 0 failed**, **3m0s**, zero retries; started `2026-10-04T08:40:30.954Z`. It validates all four corrected UI cases and Sales authentication. All **30 new case IDs plus their Sales setup** have successful executions across these two reports. The first report retains its original **27/31 and exit 1**; the correction report retains **5/5 and exit 0**. Results were not merged or rewritten. Filtered-out cases are not executed failures or skipped selected cases.
+
+Evidence verification checked **32 valid successful PNGs** and **86 unique permanently retained records**, including the failed attempts' records. Every saved journal record is linked in its own Allure result, with the exact object, ID, visible name/Contract Number and URL; all remain `deleted: false`. Machine-readable proof: `.validation/expansion-100-verification.json`.
+
+Completed local HTML reports: `.validation/expansion-100-report/index.html` and `.validation/expansion-100-field-limits-report/index.html`. Chromium verified the visible successful PNG, retained-record manifest and Opportunity/Quote links for SF-QUO-027 (**1 passed**, `.validation/report-ui/1791103331189/report.json`) and corrected SF-QUO-031 (**1 passed**, `.validation/report-ui/1791103456912/report.json`). It also verified the corrected SF-OPP-031 design (**1 passed**, `.validation/report-ui/1791103479233/report.json`).
+
+Across the two earlier 70-result runs and these two expansion runs, evidence verification confirms successful executions for **all 100 distinct current case/setup IDs**, **105 successful PNGs** and **247 unique permanently retained records**: `.validation/100-ui-coverage-verification.json`. This is evidence across **four separate original reports**, not one 100/100 run. The complete 100-result suite was collected and checked, but was not rerun as one execution. Publishing this source commit updates the repository and CI configuration; the separate remote wiki and these local reports require their own publication.
+
+## Previous 70-result permanent-retention suite — 2026-10-04
+
+The suite at that revision selected **70 UI results: 68 cases and two UI-verified authentication setups**, with **70 designs and 612 explicit steps**. Every created sandbox record remains permanently, including Opportunity, Quote and their supporting records. Direct deletion and destructive recovery are blocked. Successful Allure results have redacted PNG evidence and exact links to every saved fixture.
+
+Source typecheck, 13 unit tests, POM enforcement, design collection/count checking and generated wiki checking passed. The isolated evidence harness at `.validation/allure-failure-harness/1791096135026` validated one successful UI result with a valid PNG and exact retained Opportunity/Quote links, plus the three expected failure probes. It also proved that direct deletion of all seven supported object types is rejected before any deletion UI action. It changes no Salesforce data.
+
+Chromium rendered the generated evidence HTML and verified the visible successful PNG attachment, retained-record manifest and Opportunity/Quote links: `.validation/report-ui/1791095892554/report.json`, **1 passed**. Authentication infrastructure checks passed **5/5**, `.validation/auth-harness/1791095926509/report.json`, with synthetic secrets absent from every text report and artifact. The disabled legacy recovery command was checked and explicitly rejected destructive recovery.
+
+Full live run `01a1059e-dc4d-7013-9461-967b06136be1`, `.validation/permanent-retention-70`: **69 passed, 1 failed, 0 skipped**, **48m39s**, one worker and zero retries. All 15 new cases, all Contracts, Quotes, integrations, role checks and AI cases passed. SF-OPP-007 failed waiting for the edited Amount input to become empty; it still displayed `12345.67`. Its original failure URL, PNG and retained Account/Opportunity links remain available. No sandbox test records were deleted.
+
+The numeric helper now sends select-all and Backspace directly to the focused browser input without resolving the Lightning locator between them. Probability readback also accepts Salesforce's percentage formatting. The updated synthetic authentication/input harness passed **5/5**, `.validation/auth-harness/1791097232908/report.json`.
+
+Correction run `01a105e1-ac8b-7bab-9e4f-317a4cd08408`, `.validation/retention-number-fix`: **3 passed, 0 failed**, **1m28s**, zero retries. This separately verifies Sales authentication, the corrected **SF-OPP-007** cancellation and **SF-OPP-017** grouped decimal/edit-to-zero behavior. Every correction result has a successful PNG; both business cases include links to their retained Account and Opportunity.
+
+There are successful executions for **all 70 distinct cases/setups across these two actual runs**. This is not a single 70/70 execution: the full run retains its original 69/70 status and exit 1; the correction run retains its 3/3 status and exit 0. Their Allure results were not merged or rewritten.
+
+Evidence verification checked **73 valid successful PNGs** and **161 unique retained records**, including the failed attempt's records. Every record has an exact Allure link and a permanent UI journal entry with `deleted: false`. Machine-readable proof: `.validation/permanent-retention-verification.json`. The full-run evidence-only verifier confirmed PNGs and **155 retained record links for its 69 successful results**, preserving the original failure.
+
+Local completed HTML reports: `.validation/permanent-retention-70-report/index.html` and `.validation/retention-number-fix-report/index.html`. Chromium verified the actual successful **SF-OPP-011** result's visible PNG, retained-record manifest and Opportunity/Quote links (**1 passed**, `.validation/report-ui/1791100101451/report.json`). Chromium also verified the corrected **SF-OPP-007** result and its design (**1 passed**, `.validation/report-ui/1791100202973/report.json`). These local reports have not been published to Netlify or the remote wiki.
+
+Everything below this section is historical evidence from before permanent retention; its cleanup instructions and counts do not apply to current runs.
+
 Date: **2026-10-03**. Target: `orgfarm-80a620fbaf-dev-ed`. Business fixture creation, workflow actions, assertions and cleanup operate exclusively through Salesforce Lightning UI. JWT/singleaccess calls are authentication infrastructure; administrator SDK calls are one-time configuration.
 
 ## Final complete Run tests execution

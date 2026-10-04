@@ -1,4 +1,4 @@
-/** Restore the cleanup identity only after the runner captures a failed UI. */
+/** Restore Sales only after the runner captures any failed Service UI. */
 export class WorkflowPersonas {
   private needsSalesRestoration = false;
 

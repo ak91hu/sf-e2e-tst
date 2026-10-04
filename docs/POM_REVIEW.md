@@ -1,5 +1,8 @@
 # Page Object Model review
 
+Current policy (2026-10-04): all created sandbox records remain permanently. Deletion and destructive recovery are disabled. The full suite has 100 UI results with successful PNG evidence and exact record links. The review below is historical; its cleanup behavior is superseded by [AGENTS.md](../AGENTS.md) and [current verification](VERIFICATION.md).
+
+
 Business tests use public page-object actions and UI readbacks. Selectors, dialogs, navigation and asynchronous UI waiting belong to page objects/shared components. Scenario assertions remain in tests; reusable record invariants are checked by page objects.
 
 ```mermaid

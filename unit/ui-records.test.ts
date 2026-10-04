@@ -4,6 +4,18 @@ import { UiRecords } from '../support/ui-records.ts';
 
 class JournalProbe extends UiRecords { override persist() {} }
 
+test('Teardown never removes saved sandbox fixtures or their supporting records', async () => {
+  let removals = 0;
+  const owned = new JournalProbe(async () => { removals++; });
+  for (const object of ['Account', 'Opportunity', 'Contract', 'Quote', 'Case', 'Product2', 'Pricebook2'] as const) {
+    const record = owned.claim(object, `E2E-TA-${object}`); record.id = '006000000000001AAA';
+    assert.throws(() => owned.markDeleted(record), /never be deleted/);
+  }
+  await owned.cleanup(); await owned.cleanup();
+  assert.equal(removals, 0);
+  assert.ok(owned.records.every(record => !record.deleted));
+});
+
 test('Failed rename cleanup accepts only exact recorded names for the same owned ID', () => {
   const owned = new JournalProbe(async () => {});
   const record = owned.claim('Opportunity', 'E2E-TA-Original'); record.id = '006000000000001AAA';

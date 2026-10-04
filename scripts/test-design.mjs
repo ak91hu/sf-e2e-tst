@@ -11,8 +11,8 @@ for (const item of testDesigns) {
 }
 const cell = value => value.replaceAll('|', '\\|').replaceAll('\n', '<br>');
 const text = '# Salesforce UI step-level test designs\n\n' +
-  `${designTotals.designs} designs: ${designTotals.regression} default regression UI cases, ${designTotals.optionalAI} optional AI UI cases and ${designTotals.setups} authentication setups. Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands its shared preparation and cleanup steps.\n\n` +
-  'Salesforce business data is created, verified and cleaned up exclusively through UI. Authentication endpoints and one-time administrative provisioning are configuration infrastructure. Each case owns isolated data; administrators never create Opportunities. Visible fields, controls, record URLs and list results prove each step. There are no fixed sleeps, API oracles or automatic test retries.\n\n' +
+  `${designTotals.designs} designs: ${designTotals.regression} default regression UI cases, ${designTotals.optionalAI} AI UI cases and ${designTotals.setups} authentication setups. The complete test:all run selects exactly 100 results (98 cases + 2 setups). Designs specify intended behavior; actual execution evidence is recorded in VERIFICATION.md and Allure. Every case expands preparation and permanent-retention evidence steps.\n\n` +
+  'Salesforce business data is created and verified exclusively through UI, and every created record remains in the sandbox permanently. Deletion confirmations are never accepted; destructive recovery is disabled. Successful results include redacted PNG screenshots and exact record links. Authentication endpoints and one-time administrative provisioning are configuration infrastructure. Each case owns isolated data; administrators never create Opportunities. Visible fields, controls, record URLs and list results prove each step. There are no fixed sleeps, API oracles or automatic test retries.\n\n' +
   'Dates are generated at runtime. `futureDate` uses UTC; the automatic Salesforce Closed Won date follows the user timezone (`SF_TIME_ZONE`, default Europe/Budapest). Environment variables configure Stage names and Won/Lost percentages for other sales processes; these designs describe the configured Developer Edition defaults. Optional AI cases require model access and quota.\n\n' +
   'Editable source: [test-design.ts](test-design.ts). Generate with `npm run design:generate`; verify with `npm run design:check`. Allure displays these same expected steps in each matched case description.\n\n' +
   '| ID | Objective | Role |\n| --- | --- | --- |\n' + testDesigns.map(item => `| [${item.id}](#${item.id.toLowerCase()}) | ${cell(item.title)} | ${cell(item.persona)} |`).join('\n') + '\n\n' +
@@ -23,7 +23,13 @@ if (process.argv.includes('--check')) {
   for (const config of ['e2e.config.ts', 'e2e.agent.config.ts', 'e2e.all.config.ts']) {
     const child = spawnSync(process.execPath, ['scripts/e2e.mjs', 'list', '--config', config, '--reporter', 'json'], { encoding: 'utf8' });
     assert.equal(child.status, 0, 'Test collection must succeed for design coverage.');
-    for (const pair of JSON.parse(child.stdout).pairs) {
+    const pairs = JSON.parse(child.stdout).pairs;
+    if (config === 'e2e.all.config.ts') {
+      assert.equal(pairs.filter(pair => pair.disposition === 'run').length, 100, 'Complete UI suite must select exactly 100 results.');
+      assert.equal(pairs.filter(pair => pair.kind === 'test').length, 98);
+      assert.equal(pairs.filter(pair => pair.kind === 'setup').length, 2);
+    }
+    for (const pair of pairs) {
       const id = pair.title.split(' |')[0];
       const design = testDesigns.find(item => item.id === id);
       assert.ok(design && design.file === pair.file, `Missing or mismatched design: ${id}`);

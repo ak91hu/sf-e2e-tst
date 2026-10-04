@@ -92,9 +92,12 @@ jobs:
           path: test-history/history.jsonl
           key: allure-history-${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: allure-history-${{ github.repository_id }}-
-      - name: Run all 55 UI test results
+      - name: Run all 100 UI test results with permanent records and success evidence
         id: regression
         run: npm run test:all
+      - name: Verify successful screenshots and every permanent record link
+        if: ${{ !cancelled() && steps.regression.outcome == 'success' }}
+        run: npm run report:verify-retention
       - name: Build current Allure report (also after failed tests)
         id: allure
         if: ${{ !cancelled() && steps.regression.outcome != 'skipped' }}

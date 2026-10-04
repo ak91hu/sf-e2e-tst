@@ -37,8 +37,11 @@ export function readableStepName(api: string, label: string): string {
     'expect.toBeChecked': `Check ${name} is selected`, 'expect.toBeEnabled': `Check ${name} is enabled`,
     'expect.toHaveURL': 'Check current page address', 'expect.not.toHaveURL': 'Check the previous record page is closed',
     'browser.evaluate': 'Read visible page data', 'browser.url': 'Read current page address',
+    'browser.keyboard.press': 'Use keyboard in the focused field', 'browser.keyboard.type': 'Enter text in the focused field',
     'browser.route': 'Configure browser request handling', 'browser.unroute': 'Remove browser request handling',
     'app.clearState': 'Clear browser session', 'session.save': 'Save verified user session',
+    'app.screenshot': 'Capture redacted UI evidence screenshot',
+    'recordEvidence.publish': 'Link permanently retained sandbox records',
     'agent.act': 'Perform the requested UI changes', 'agent.assert': 'Check the requested UI result',
     'agent.extract': 'Read structured data from the UI',
   };

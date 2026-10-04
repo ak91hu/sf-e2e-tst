@@ -7,6 +7,7 @@ import { ReporterRuntime, createDefaultWriter } from 'allure-js-commons/sdk/repo
 import { testDesigns } from '../docs/test-design.ts';
 import { redactAuthUrl } from '../support/auth-redaction.ts';
 import { readableStepName } from './step-names.ts';
+import { environment } from '../support/environment.ts';
 
 type Result = Report['run']['results'][number];
 type Attempt = Result['attempts'][number];
@@ -44,17 +45,36 @@ function feature(result: Result) {
 
 // Only copy fully redacted evidence. Never attach sessions, auth files,
 // traces, downloads, videos, or arbitrary paths supplied in an error message.
-function attachEvidence(runtime: ReporterRuntime, uuid: string, attempt: Attempt, artifactsRoot: string) {
+function evidencePath(artifactsRoot: string, path: string) {
+  const root = realpathSync(artifactsRoot); const actual = realpathSync(resolve(artifactsRoot, path));
+  const child = relative(root, actual);
+  if (isAbsolute(child) || child === '..' || child.startsWith(`..${sep}`)) throw new Error('Allure evidence is outside this run artifact directory.');
+  return actual;
+}
+
+function retainedRecordLinks(attempt: Attempt | undefined, artifactsRoot: string) {
+  const artifact = attempt?.artifacts.find(item => item.kind === 'log' && item.redaction === 'complete' && item.path?.endsWith('/retained-records.json'));
+  if (!artifact?.path) return [];
+  const evidence = JSON.parse(readFileSync(evidencePath(artifactsRoot, artifact.path), 'utf8'));
+  if (evidence.retention !== 'permanent' || !Array.isArray(evidence.records)) throw new Error('Invalid retained record evidence.');
+  return evidence.records.map((record: { object: string; name: string; id: string; url: string }) => {
+    const url = new URL(record.url);
+    if (!['Account', 'Opportunity', 'Contract', 'Quote', 'Case', 'Product2', 'Pricebook2'].includes(record.object)
+      || !/^[A-Za-z0-9]{15,18}$/.test(record.id) || typeof record.name !== 'string'
+      || url.origin !== environment.baseUrl || url.pathname !== `/lightning/r/${record.object}/${record.id}/view` || url.search || url.hash)
+      throw new Error('Invalid retained Salesforce record link.');
+    return { name: `${record.object}: ${record.name}`, type: 'retained-record', url: url.href };
+  });
+}
+
+function attachEvidence(runtime: ReporterRuntime, uuid: string, attempt: Attempt, artifactsRoot: string, passed: boolean) {
   for (const artifact of attempt.artifacts) {
-    const screenshot = artifact.kind === 'screenshot' && artifact.id === attempt.failure?.screenshot && artifact.mediaType === 'image/png';
+    const screenshot = artifact.kind === 'screenshot' && (passed || artifact.id === attempt.failure?.screenshot) && artifact.mediaType === 'image/png';
     const log = artifact.kind === 'log' && ['text/plain', 'application/json', 'text/markdown'].includes(artifact.mediaType);
     if ((!screenshot && !log) || artifact.redaction !== 'complete' || !artifact.path) continue;
-    const path = resolve(artifactsRoot, artifact.path);
-    const root = realpathSync(artifactsRoot); const actual = realpathSync(path);
-    const child = relative(root, actual);
-    if (isAbsolute(child) || child === '..' || child.startsWith(`..${sep}`)) throw new Error('Allure evidence is outside this run artifact directory.');
+    const actual = evidencePath(artifactsRoot, artifact.path);
     if (statSync(actual).size > 4 * 1024 * 1024) continue;
-    runtime.writeAttachment(uuid, undefined, screenshot ? 'Screenshot at failure' : 'Redacted UI evidence', readFileSync(actual), { contentType: artifact.mediaType, fileExtension: screenshot ? 'png' : artifact.mediaType === 'application/json' ? 'json' : 'txt' });
+    runtime.writeAttachment(uuid, undefined, screenshot ? (passed ? 'Screenshot of successful UI run' : 'Screenshot at failure') : artifact.path.endsWith('/retained-records.json') ? 'Permanently retained sandbox records' : 'Redacted UI evidence', readFileSync(actual), { contentType: artifact.mediaType, fileExtension: screenshot ? 'png' : artifact.mediaType === 'application/json' ? 'json' : 'txt' });
   }
 }
 
@@ -92,7 +112,7 @@ export function writeAllureResults(run: FinishedRun, signal?: AbortSignal) {
         historyId: hash(fullName), testCaseId: hash(result.testId),
         start, stop, status, stage: Stage.FINISHED,
         statusDetails: { ...errorDetails(attempt?.error), ...(result.skip ? { message: result.skip.reason } : {}) },
-        description: `TesterArmy e2e UI test. Source: ${result.file}. Cleanup: ${attempt?.cleanup ?? 'not executed'}.\n\n${description}`,
+        description: `TesterArmy e2e UI test. Source: ${result.file}. Cleanup: ${attempt?.cleanup ?? 'not executed'}. Retention: permanent; no record deletion.\n\n${description}`,
         labels: [
           { name: 'framework', value: 'TesterArmy e2e' }, { name: 'language', value: 'TypeScript' },
           { name: 'parentSuite', value: 'Salesforce UI regression' }, { name: 'suite', value: feature(result) },
@@ -100,14 +120,14 @@ export function writeAllureResults(run: FinishedRun, signal?: AbortSignal) {
           { name: 'package', value: result.file }, ...result.tags.map(value => ({ name: 'tag', value })),
         ],
         parameters: [{ name: 'browser', value: result.targetId }, { name: 'agent', value: result.agent }, { name: 'repeat', value: String(result.repeat) }],
-        links: url ? [{ name: 'URL at failure', type: 'failure', url }] : [],
+        links: [...(url ? [{ name: 'URL at failure', type: 'failure', url }] : []), ...retainedRecordLinks(attempt, run.artifactsRoot)],
         steps: attempt ? steps(attempt) : [],
       });
       if (attempt && status !== Status.PASSED) {
         runtime.writeAttachment(uuid, undefined, 'Detailed attempt log', Buffer.from(JSON.stringify({ test: fullName, startedAt: attempt.startedAt, durationMs: attempt.durationMs, status: attempt.status, failureUrl: url, error: attempt.error, secondaryErrors: attempt.secondaryErrors, cleanup: attempt.cleanup, steps: attempt.steps }, null, 2)), { contentType: 'application/json', fileExtension: 'json' });
         if (url) runtime.writeAttachment(uuid, undefined, 'Failure URL', Buffer.from(url), { contentType: 'text/uri-list', fileExtension: 'txt' });
-        attachEvidence(runtime, uuid, attempt, run.artifactsRoot);
       }
+      if (attempt) attachEvidence(runtime, uuid, attempt, run.artifactsRoot, status === Status.PASSED);
       runtime.stopTest(uuid, { stop }); runtime.writeTest(uuid); count++;
     }
   }
